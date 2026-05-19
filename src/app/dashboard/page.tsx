@@ -11,6 +11,7 @@ import { ScreenLink } from "@/components/dashboard/screen-link";
 import { TeamPanel } from "@/components/dashboard/team-panel";
 import { FreelancerInvite } from "@/components/dashboard/freelancer-invite";
 import { LogOut } from "lucide-react";
+import { PWAInstallButton } from "@/components/dashboard/pwa-install";
 import type { User, Team } from "@/types";
 
 async function fetchDashboardData(): Promise<{ team: Team | null; allUsers: User[] } | null> {
@@ -82,6 +83,7 @@ export default function DashboardPage() {
             IF.Land
           </h1>
           <div className="flex items-center gap-2">
+            <PWAInstallButton />
             <ScreenLink />
             <Button
               variant="ghost"
