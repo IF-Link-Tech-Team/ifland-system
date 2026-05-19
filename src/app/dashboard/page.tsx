@@ -97,7 +97,7 @@ export default function DashboardPage() {
 
         {/* 个人名片 */}
         <div className="mb-6">
-          <ProfileCard user={authUser} />
+          <ProfileCard user={authUser} onAvatarUpdate={handleDataRefresh} />
         </div>
 
         {/* 互斥展示：自由人 vs 团队面板 */}
