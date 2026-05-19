@@ -1,23 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
-import {
-  readMockData,
-  writeMockData,
-  getBuilderIdFromCookie,
-  findUserById,
-  findTeamById,
-  unauthorizedResponse,
-} from "@/lib/mock-db";
+import { getBuilderIdFromCookie, unauthorizedResponse } from "@/lib/mock-db";
+import { getUserByBuilderId, getTeamById, updateTeam } from "@/lib/data-service";
 
 const MOCK_DELAY = 300;
 
 export async function POST(request: NextRequest) {
-  await new Promise((r) => setTimeout(r, MOCK_DELAY));
+  if (process.env.USE_FEISHU !== "true") {
+    await new Promise((r) => setTimeout(r, MOCK_DELAY));
+  }
 
   const builderId = getBuilderIdFromCookie(request);
   if (!builderId) return unauthorizedResponse();
 
-  const data = readMockData();
-  const user = findUserById(data, builderId);
+  const user = await getUserByBuilderId(builderId);
   if (!user) return unauthorizedResponse();
 
   try {
@@ -29,7 +24,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const team = findTeamById(data, teamId);
+    const team = await getTeamById(teamId);
     if (!team) {
       return NextResponse.json(
         { ok: false, error: "队伍不存在" },
@@ -37,20 +32,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 从 pendingInvites 中移除当前用户
-    const before = team.pendingInvites.length;
-    team.pendingInvites = team.pendingInvites.filter(
-      (id) => id !== builderId
-    );
-
-    if (team.pendingInvites.length === before) {
+    if (!team.pendingInvites.includes(builderId)) {
       return NextResponse.json(
         { ok: false, error: "未收到该队伍的邀请" },
         { status: 400 }
       );
     }
 
-    writeMockData(data);
+    team.pendingInvites = team.pendingInvites.filter((id) => id !== builderId);
+    await updateTeam(teamId, { pendingInvites: team.pendingInvites });
 
     return NextResponse.json({ ok: true, data: null });
   } catch {

@@ -1,17 +1,19 @@
 import { NextResponse } from "next/server";
-import { readMockData } from "@/lib/mock-db";
+import { getAllTeams, getAllUsers } from "@/lib/data-service";
 
 const MOCK_DELAY = 200;
 
 export async function GET() {
-  await new Promise((r) => setTimeout(r, MOCK_DELAY));
+  if (process.env.USE_FEISHU !== "true") {
+    await new Promise((r) => setTimeout(r, MOCK_DELAY));
+  }
 
-  const data = readMockData();
+  const teams = await getAllTeams();
+  const allUsers = await getAllUsers();
 
-  // 返回全部队伍信息，附带成员详情
-  const teams = data.teams.map((team) => {
+  const result = teams.map((team) => {
     const members = team.memberIds
-      .map((id) => data.users.find((u) => u.builderId === id))
+      .map((id) => allUsers.find((u) => u.builderId === id))
       .filter(Boolean)
       .map((u) => ({
         builderId: u!.builderId,
@@ -31,5 +33,5 @@ export async function GET() {
     };
   });
 
-  return NextResponse.json({ ok: true, data: teams });
+  return NextResponse.json({ ok: true, data: result });
 }

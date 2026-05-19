@@ -1,22 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
-import {
-  readMockData,
-  writeMockData,
-  getBuilderIdFromCookie,
-  findUserById,
-  unauthorizedResponse,
-} from "@/lib/mock-db";
+import { getBuilderIdFromCookie, unauthorizedResponse } from "@/lib/mock-db";
+import { getUserByBuilderId, updateUser } from "@/lib/data-service";
 
 const MOCK_DELAY = 300;
 
 export async function POST(request: NextRequest) {
-  await new Promise((r) => setTimeout(r, MOCK_DELAY));
+  if (process.env.USE_FEISHU !== "true") {
+    await new Promise((r) => setTimeout(r, MOCK_DELAY));
+  }
 
   const builderId = getBuilderIdFromCookie(request);
   if (!builderId) return unauthorizedResponse();
 
-  const data = readMockData();
-  const user = findUserById(data, builderId);
+  const user = await getUserByBuilderId(builderId);
   if (!user) return unauthorizedResponse();
 
   try {
@@ -34,9 +30,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 打异常标记
-    user.abnormalMark = "申请离队";
-    writeMockData(data);
+    await updateUser(builderId, { abnormalMark: "申请离队" });
 
     return NextResponse.json({ ok: true, data: null });
   } catch {

@@ -1,23 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
-import {
-  readMockData,
-  writeMockData,
-  getBuilderIdFromCookie,
-  findUserById,
-  findTeamById,
-  unauthorizedResponse,
-} from "@/lib/mock-db";
+import { getBuilderIdFromCookie, unauthorizedResponse } from "@/lib/mock-db";
+import { getUserByBuilderId, getTeamById, updateTeam } from "@/lib/data-service";
 
 const MOCK_DELAY = 300;
 
 export async function PUT(request: NextRequest) {
-  await new Promise((r) => setTimeout(r, MOCK_DELAY));
+  if (process.env.USE_FEISHU !== "true") {
+    await new Promise((r) => setTimeout(r, MOCK_DELAY));
+  }
 
   const builderId = getBuilderIdFromCookie(request);
   if (!builderId) return unauthorizedResponse();
 
-  const data = readMockData();
-  const user = findUserById(data, builderId);
+  const user = await getUserByBuilderId(builderId);
   if (!user) return unauthorizedResponse();
 
   try {
@@ -29,7 +24,7 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    const team = findTeamById(data, teamId);
+    const team = await getTeamById(teamId);
     if (!team) {
       return NextResponse.json(
         { ok: false, error: "队伍不存在" },
@@ -37,7 +32,6 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    // 仅队长可修改
     if (team.captainId !== builderId) {
       return NextResponse.json(
         { ok: false, error: "仅队长可修改宣言" },
@@ -45,10 +39,9 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    team.slogan = slogan.trim();
-    writeMockData(data);
+    await updateTeam(teamId, { slogan: slogan.trim() });
 
-    return NextResponse.json({ ok: true, data: { slogan: team.slogan } });
+    return NextResponse.json({ ok: true, data: { slogan: slogan.trim() } });
   } catch {
     return NextResponse.json(
       { ok: false, error: "服务器错误" },

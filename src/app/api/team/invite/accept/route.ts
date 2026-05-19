@@ -1,23 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getBuilderIdFromCookie, unauthorizedResponse } from "@/lib/mock-db";
 import {
-  readMockData,
-  writeMockData,
-  getBuilderIdFromCookie,
-  findUserById,
-  findTeamById,
-  unauthorizedResponse,
-} from "@/lib/mock-db";
+  getUserByBuilderId,
+  getTeamById,
+  getAllTeams,
+  updateUser,
+  updateTeam,
+} from "@/lib/data-service";
 
 const MOCK_DELAY = 500;
 
 export async function POST(request: NextRequest) {
-  await new Promise((r) => setTimeout(r, MOCK_DELAY));
+  if (process.env.USE_FEISHU !== "true") {
+    await new Promise((r) => setTimeout(r, MOCK_DELAY));
+  }
 
   const builderId = getBuilderIdFromCookie(request);
   if (!builderId) return unauthorizedResponse();
 
-  const data = readMockData();
-  const user = findUserById(data, builderId);
+  const user = await getUserByBuilderId(builderId);
   if (!user) return unauthorizedResponse();
 
   try {
@@ -29,7 +30,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 必须是自由人才能接受邀请
     if (user.teamId) {
       return NextResponse.json(
         { ok: false, error: "你已加入队伍，无法接受新邀请" },
@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const team = findTeamById(data, teamId);
+    const team = await getTeamById(teamId);
     if (!team) {
       return NextResponse.json(
         { ok: false, error: "队伍不存在" },
@@ -45,7 +45,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 确认邀请存在
     if (!team.pendingInvites.includes(builderId)) {
       return NextResponse.json(
         { ok: false, error: "未收到该队伍的邀请" },
@@ -53,7 +52,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 队伍满员校验
     if (team.memberIds.length >= 3) {
       return NextResponse.json(
         { ok: false, error: "队伍已满员" },
@@ -62,23 +60,30 @@ export async function POST(request: NextRequest) {
     }
 
     // 1. 加入队伍
-    user.teamId = teamId;
+    await updateUser(builderId, { teamId });
     team.memberIds.push(builderId);
 
     // 2. 从当前队伍的 pendingInvites 中移除
-    team.pendingInvites = team.pendingInvites.filter(
-      (id) => id !== builderId
-    );
+    team.pendingInvites = team.pendingInvites.filter((id) => id !== builderId);
 
-    // 3. 排他清理：全局遍历其他队伍，将当前用户从中移除
-    for (const otherTeam of data.teams) {
+    await updateTeam(teamId, {
+      memberIds: team.memberIds,
+      pendingInvites: team.pendingInvites,
+    });
+
+    // 3. 排他清理：全局遍历其他队伍
+    const allTeams = await getAllTeams();
+    for (const otherTeam of allTeams) {
       if (otherTeam.teamId === teamId) continue;
-      otherTeam.pendingInvites = otherTeam.pendingInvites.filter(
-        (id) => id !== builderId
-      );
+      if (otherTeam.pendingInvites.includes(builderId)) {
+        otherTeam.pendingInvites = otherTeam.pendingInvites.filter(
+          (id) => id !== builderId
+        );
+        await updateTeam(otherTeam.teamId, {
+          pendingInvites: otherTeam.pendingInvites,
+        });
+      }
     }
-
-    writeMockData(data);
 
     return NextResponse.json({
       ok: true,

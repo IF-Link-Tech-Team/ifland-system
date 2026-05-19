@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { readMockData } from "@/lib/mock-db";
+import { getUserByBuilderId } from "@/lib/data-service";
 
 const MOCK_DELAY = 500;
 
 export async function POST(request: NextRequest) {
-  await new Promise((r) => setTimeout(r, MOCK_DELAY));
+  // Mock 模式下模拟延迟
+  if (process.env.USE_FEISHU !== "true") {
+    await new Promise((r) => setTimeout(r, MOCK_DELAY));
+  }
 
   try {
     const { builderId } = await request.json();
@@ -16,8 +19,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const data = readMockData();
-    const user = data.users.find((u) => u.builderId === builderId);
+    const user = await getUserByBuilderId(builderId);
 
     if (!user) {
       return NextResponse.json(
