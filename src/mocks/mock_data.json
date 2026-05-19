@@ -1,0 +1,75 @@
+{
+  "users": [
+    {
+      "builderId": "111",
+      "name": "选手甲",
+      "phone": "13800138001",
+      "email": "jia@example.com",
+      "avatar": "",
+      "role": "NAVIGATOR",
+      "bio": "热爱 AI 的后端选手",
+      "teamId": "T-001",
+      "abnormalMark": null
+    },
+    {
+      "builderId": "222",
+      "name": "选手乙",
+      "phone": "13800138002",
+      "email": "yi@example.com",
+      "avatar": "",
+      "role": "WEAVER",
+      "bio": "喜欢写前端的设计师",
+      "teamId": null,
+      "abnormalMark": null
+    },
+    {
+      "builderId": "333",
+      "name": "选手丙",
+      "phone": "13800138003",
+      "email": "bing@example.com",
+      "avatar": "",
+      "role": "LINKER",
+      "bio": "产品经理，擅长路演",
+      "teamId": null,
+      "abnormalMark": null
+    },
+    {
+      "builderId": "444",
+      "name": "选手丁",
+      "phone": "13800138004",
+      "email": "ding@example.com",
+      "avatar": "",
+      "role": "ARTIFICER",
+      "bio": "硬件大神，焊板子一把好手",
+      "teamId": "T-002",
+      "abnormalMark": null
+    }
+  ],
+  "teams": [
+    {
+      "teamId": "T-001",
+      "name": "CyberPioneers",
+      "slogan": "用代码改变世界",
+      "captainId": "111",
+      "memberIds": ["111"],
+      "pendingInvites": [],
+      "status": "头脑风暴中",
+      "abnormalMark": null
+    },
+    {
+      "teamId": "T-002",
+      "name": "HardwareHeroes",
+      "slogan": "从焊盘到星辰",
+      "captainId": "444",
+      "memberIds": ["444"],
+      "pendingInvites": [],
+      "status": "头脑风暴中",
+      "abnormalMark": null
+    }
+  ],
+  "system": {
+    "marqueeNotice": "",
+    "endTime": "2026-05-20T17:00:00+08:00",
+    "forceDisbandTrigger": null
+  }
+}
