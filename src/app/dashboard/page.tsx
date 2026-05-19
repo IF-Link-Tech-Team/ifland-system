@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useTransition } from "react";
 import { useAuth } from "@/contexts/auth-context";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -7,18 +8,57 @@ import { ProfileCard } from "@/components/dashboard/profile-card";
 import { InviteList } from "@/components/dashboard/invite-list";
 import { RedBanner } from "@/components/dashboard/red-banner";
 import { ScreenLink } from "@/components/dashboard/screen-link";
+import { TeamPanel } from "@/components/dashboard/team-panel";
+import { FreelancerInvite } from "@/components/dashboard/freelancer-invite";
 import { LogOut } from "lucide-react";
+import type { User, Team } from "@/types";
+
+async function fetchDashboardData(): Promise<{ team: Team | null; allUsers: User[] } | null> {
+  const res = await fetch("/api/team/my");
+  if (res.ok) {
+    const json = await res.json();
+    if (json.ok) return json.data;
+  }
+  return null;
+}
 
 export default function DashboardPage() {
-  const { user, loading, logout, refreshUser } = useAuth();
+  const { user: authUser, loading: authLoading, logout, refreshUser } = useAuth();
   const router = useRouter();
+  const [team, setTeam] = useState<Team | null>(null);
+  const [allUsers, setAllUsers] = useState<User[]>([]);
+  const [dataLoading, setDataLoading] = useState(true);
+  const [, startTransition] = useTransition();
+
+  // 触发数据刷新
+  const handleDataRefresh = () => {
+    startTransition(async () => {
+      const data = await fetchDashboardData();
+      if (data) {
+        setTeam(data.team);
+        setAllUsers(data.allUsers);
+      }
+      await refreshUser();
+    });
+  };
+
+  // 首次加载
+  if (dataLoading && authUser) {
+    fetchDashboardData().then((data) => {
+      if (data) {
+        setTeam(data.team);
+        setAllUsers(data.allUsers);
+      }
+      setDataLoading(false);
+    });
+  }
 
   const handleLogout = async () => {
     await logout();
     router.push("/login");
   };
 
-  if (loading) {
+  if (authLoading || dataLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <p className="neon-glow-cyan text-neon-cyan">加载中...</p>
@@ -26,7 +66,7 @@ export default function DashboardPage() {
     );
   }
 
-  if (!user) {
+  if (!authUser) {
     router.push("/login");
     return null;
   }
@@ -57,28 +97,32 @@ export default function DashboardPage() {
 
         {/* 个人名片 */}
         <div className="mb-6">
-          <ProfileCard user={user} />
+          <ProfileCard user={authUser} />
         </div>
 
-        {/* 邀请列表（自由人可见） */}
-        {!user.teamId && (
+        {/* 互斥展示：自由人 vs 团队面板 */}
+        {authUser.teamId && team ? (
           <div className="mb-6">
-            <InviteList onAccept={refreshUser} />
+            <TeamPanel
+              key={team.teamId + team.name + team.slogan + team.status + team.memberIds.join(",") + team.pendingInvites.join(",")}
+              user={authUser}
+              team={team}
+              allUsers={allUsers}
+              onTeamUpdate={handleDataRefresh}
+              onUserUpdate={handleDataRefresh}
+            />
           </div>
+        ) : (
+          <>
+            {/* 自由人：邀请列表 + 发起组队 */}
+            <div className="mb-6">
+              <InviteList onAccept={handleDataRefresh} />
+            </div>
+            <div className="mb-6">
+              <FreelancerInvite onTeamCreated={handleDataRefresh} />
+            </div>
+          </>
         )}
-
-        {/* 组队状态提示 */}
-        <div className="rounded-lg border border-border bg-card p-4 text-center">
-          {user.teamId ? (
-            <p className="text-sm">
-              已加入队伍 <span className="font-medium text-neon-cyan">{user.teamId}</span>
-            </p>
-          ) : (
-            <p className="text-muted-foreground text-sm">
-              你当前是自由人，可以接受邀请或发起组队
-            </p>
-          )}
-        </div>
       </div>
     </div>
   );
