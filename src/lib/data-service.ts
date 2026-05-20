@@ -18,13 +18,38 @@ const TABLE_SYSTEM = () => process.env.FEISHU_TABLE_ID_SYSTEM ?? "";
 
 // ==================== 辅助函数：字段解析 ====================
 
+/**
+ * 解析文本字段值
+ * 飞书 search API 返回格式多样：纯字符串 / {text,type} 对象 / [{text,type}] 数组
+ */
+function extractTextValue(val: unknown): string {
+  if (!val) return "";
+  if (typeof val === "string") return val;
+  // 单个 {text, type} 对象
+  if (typeof val === "object" && !Array.isArray(val) && "text" in (val as object)) {
+    return (val as { text: string }).text;
+  }
+  // 数组格式: [{text: "xxx", type: "text"}, ...]
+  if (Array.isArray(val)) {
+    return val
+      .map((item) => {
+        if (typeof item === "string") return item;
+        if (item && typeof item === "object" && "text" in item) return (item as { text: string }).text;
+        return "";
+      })
+      .filter(Boolean)
+      .join("");
+  }
+  return String(val);
+}
+
 /** 解析单选字段值（处理字符串或对象格式） */
 function extractSelectValue(val: unknown): string {
   if (typeof val === "string") return val;
   if (val && typeof val === "object" && "text" in (val as object)) {
     return (val as { text: string }).text;
   }
-  return "";
+  return extractTextValue(val);
 }
 
 /**
@@ -47,17 +72,20 @@ function extractLinkRecordIds(val: unknown): string[] {
     }
     return ids;
   }
-  // search 格式: { link_record_ids: [...] }
+  // search 格式: { link_record_ids: [...] } — 注意飞书可能返回 null
   if (typeof val === "object" && val !== null && "link_record_ids" in val) {
-    return (val as { link_record_ids: string[] }).link_record_ids;
+    const ids = (val as { link_record_ids: string[] | null }).link_record_ids;
+    return Array.isArray(ids) ? ids : [];
   }
   return [];
 }
 
-/** 解析 pendingInvites（逗号分隔文本 或 字符串数组） */
+/** 解析 pendingInvites（逗号分隔文本 / 字符串数组 / 飞书文本数组） */
 function parsePendingInvites(val: unknown): string[] {
-  if (typeof val === "string") {
-    return val ? val.split(",").map((s) => s.trim()).filter(Boolean) : [];
+  // 飞书 search API 可能返回 [{text, type}] 数组格式
+  const text = extractTextValue(val);
+  if (text) {
+    return text.split(",").map((s) => s.trim()).filter(Boolean);
   }
   if (Array.isArray(val)) {
     return val.map(String).filter(Boolean);
@@ -68,7 +96,8 @@ function parsePendingInvites(val: unknown): string[] {
 /** 构造关联字段写入值 */
 function makeLinkValue(recordId: string | null): unknown {
   if (!recordId) return null; // 清空
-  return [{ id: recordId }];
+  // 飞书单向关联字段写入格式: ["record_id"]
+  return [recordId];
 }
 
 // ==================== 辅助函数：record_id 查找 ====================
@@ -89,15 +118,15 @@ async function findTeamRecordId(teamId: string): Promise<string | null> {
 
 function mapFeishuUser(fields: Record<string, unknown>, teamId: string | null): User {
   return {
-    builderId: String(fields["Builder号"] ?? ""),
-    name: String(fields["姓名"] ?? ""),
-    phone: String(fields["电话"] ?? ""),
-    email: String(fields["邮箱"] ?? ""),
-    avatar: String(fields["头像"] ?? ""),
+    builderId: extractTextValue(fields["Builder号"]),
+    name: extractTextValue(fields["姓名"]),
+    phone: extractTextValue(fields["电话"]),
+    email: extractTextValue(fields["邮箱"]),
+    avatar: extractTextValue(fields["头像"]),
     role: (extractSelectValue(fields["角色"]) as UserRole) || "ANOMALY",
-    bio: String(fields["自我介绍"] ?? ""),
+    bio: extractTextValue(fields["自我介绍"]),
     teamId,
-    abnormalMark: String(fields["异常标记"] ?? "") || null,
+    abnormalMark: extractTextValue(fields["异常标记"]) || null,
   };
 }
 
@@ -107,14 +136,14 @@ function mapFeishuTeam(
   memberIds: string[]
 ): Team {
   return {
-    teamId: String(fields["团队ID"] ?? ""),
-    name: String(fields["队名"] ?? ""),
-    slogan: String(fields["一句话宣言"] ?? ""),
+    teamId: extractTextValue(fields["团队ID"]),
+    name: extractTextValue(fields["队名"]),
+    slogan: extractTextValue(fields["一句话宣言"]),
     captainId,
     memberIds,
     pendingInvites: parsePendingInvites(fields["受邀名单 (pendingInvites)"]),
     status: (extractSelectValue(fields["队伍状态"]) as TeamStatus) || "头脑风暴中",
-    abnormalMark: String(fields["异常标记"] ?? "") || null,
+    abnormalMark: extractTextValue(fields["异常标记"]) || null,
   };
 }
 
@@ -137,7 +166,7 @@ export async function getUserByBuilderId(builderId: string): Promise<User | null
     const teamRecord = await feishu.getRecord(TABLE_TEAMS(), linkIds[0]);
     if (teamRecord) {
       const tf = teamRecord.fields as Record<string, unknown>;
-      teamId = String(tf["团队ID"] ?? "") || null;
+      teamId = extractTextValue(tf["团队ID"]) || null;
     }
   }
 
@@ -159,7 +188,7 @@ export async function getAllUsers(): Promise<User[]> {
   const teamMap = new Map<string, string>();
   for (const tr of teamRecords) {
     const recId = String(tr.record_id ?? "");
-    const tid = String((tr.fields as Record<string, unknown>)["团队ID"] ?? "");
+    const tid = extractTextValue((tr.fields as Record<string, unknown>)["团队ID"]);
     if (recId && tid) teamMap.set(recId, tid);
   }
 
@@ -232,7 +261,7 @@ export async function getTeamById(teamId: string): Promise<Team | null> {
   for (const ur of userRecords) {
     const fields = ur.fields as Record<string, unknown>;
     const recId = String(ur.record_id ?? "");
-    const bid = String(fields["Builder号"] ?? "");
+    const bid = extractTextValue(fields["Builder号"]);
     if (recId && bid) userMap.set(recId, bid);
 
     const userTeamLinks = extractLinkRecordIds(fields["所属团队"]);
@@ -262,7 +291,7 @@ export async function getAllTeams(): Promise<Team[]> {
   const userMap = new Map<string, string>();
   for (const ur of userRecords) {
     const recId = String(ur.record_id ?? "");
-    const bid = String((ur.fields as Record<string, unknown>)["Builder号"] ?? "");
+    const bid = extractTextValue((ur.fields as Record<string, unknown>)["Builder号"]);
     if (recId && bid) userMap.set(recId, bid);
   }
 
@@ -271,7 +300,7 @@ export async function getAllTeams(): Promise<Team[]> {
 
   for (const ur of userRecords) {
     const fields = ur.fields as Record<string, unknown>;
-    const bid = String(fields["Builder号"] ?? "");
+    const bid = extractTextValue(fields["Builder号"]);
     const teamLinks = extractLinkRecordIds(fields["所属团队"]);
     for (const teamRecId of teamLinks) {
       const list = membersByTeamRecId.get(teamRecId) ?? [];
@@ -367,9 +396,9 @@ export async function getSystemConfig(): Promise<SystemConfig> {
   }
 
   return {
-    marqueeNotice: (fields["全局跑马灯通知"] as string) ?? "",
-    endTime: (fields["比赛结束时间"] as string) ?? "",
-    forceDisbandTrigger: (fields["强制解散触发"] as string) ?? null,
+    marqueeNotice: extractTextValue(fields["全局跑马灯通知"]),
+    endTime: extractTextValue(fields["比赛结束时间"]),
+    forceDisbandTrigger: extractTextValue(fields["强制解散触发"]) || null,
   };
 }
 
