@@ -1,15 +1,5 @@
-import { describe, it, expect, beforeEach } from "vitest";
-import fs from "fs";
-import path from "path";
+import { describe, it, expect } from "vitest";
 import { readMockData, writeMockData } from "@/lib/mock-db";
-
-const MOCK_PATH = path.join(process.cwd(), "src/mocks/mock_data.json");
-const ORIGINAL_DATA = fs.readFileSync(MOCK_PATH, "utf-8");
-
-// 每个测试前恢复原始数据
-beforeEach(() => {
-  fs.writeFileSync(MOCK_PATH, ORIGINAL_DATA, "utf-8");
-});
 
 describe("mock-db 工具函数", () => {
   it("readMockData 返回正确的数据结构", () => {

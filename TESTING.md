@@ -2,8 +2,9 @@
 
 ## 运行命令
 
-- `npm run test` — Vitest 单元测试
+- `npm run test` — Vitest 单元测试 + API 集成测试
 - `npm run test:watch` — Vitest 监听模式
+- `npm run test:e2e` — Playwright E2E 测试
 - `npm run lint` — ESLint 检查
 - `npm run typecheck` — TypeScript 类型检查
 - `npm run build` — 生产构建 (webpack, 含 PWA)
@@ -16,20 +17,59 @@
 | 组队邀请流程 | `src/__tests__/mock-db.test.ts` | ✅ 已覆盖 |
 | 排他清理逻辑 | `src/__tests__/mock-db.test.ts` | ✅ 已覆盖 |
 | 离队申请 | `src/__tests__/mock-db.test.ts` | ✅ 已覆盖 |
-| API 路由集成 | 手动验收 (Mock 模式) | ✅ Phase 1 闭环 |
+| POST /api/auth/login | `src/__tests__/api/auth.test.ts` | ✅ 已覆盖 |
+| DELETE /api/auth/login | `src/__tests__/api/auth.test.ts` | ✅ 已覆盖 |
+| GET /api/user/me | `src/__tests__/api/user-and-team-my.test.ts` | ✅ 已覆盖 |
+| GET /api/team/my | `src/__tests__/api/user-and-team-my.test.ts` | ✅ 已覆盖 |
+| POST /api/team/invite | `src/__tests__/api/team-invite.test.ts` | ✅ 已覆盖 |
+| POST /api/team/invite/accept | `src/__tests__/api/team-invite.test.ts` | ✅ 已覆盖 |
+| POST /api/team/invite/reject | `src/__tests__/api/team-invite.test.ts` | ✅ 已覆盖 |
+| GET /api/team/invites/received | `src/__tests__/api/team-invite.test.ts` | ✅ 已覆盖 |
+| PUT /api/team/name | `src/__tests__/api/team-manage.test.ts` | ✅ 已覆盖 |
+| PUT /api/team/slogan | `src/__tests__/api/team-manage.test.ts` | ✅ 已覆盖 |
+| PUT /api/team/status | `src/__tests__/api/team-manage.test.ts` | ✅ 已覆盖 |
+| POST /api/team/leave-request | `src/__tests__/api/team-manage.test.ts` | ✅ 已覆盖 |
+| GET /api/system/status | `src/__tests__/api/screen.test.ts` | ✅ 已覆盖 |
+| GET /api/screen/teams | `src/__tests__/api/screen.test.ts` | ✅ 已覆盖 |
+| E2E: 登录流程 | `e2e/login.spec.ts` | ✅ 已覆盖 |
+| E2E: 组队流程 | `e2e/team.spec.ts` | ✅ 已覆盖 |
+| E2E: 大屏轮询 | `e2e/screen.spec.ts` | ✅ 已覆盖 |
 | 飞书 API 集成 | 需配置 .env.local | ⏳ 待人类配置后验证 |
 | 头像上传 | 手动验收 | ✅ Phase 1 本地直存 |
 | PWA 安装 | 手动验收 | ✅ Android/iOS 双端 |
 
 ## 已覆盖核心场景
 
+### 单元测试 (Vitest, 54 tests)
 1. ✅ Mock 数据读取与结构验证
 2. ✅ 队长邀请 → pendingInvites 追加
 3. ✅ 锁位校验 (memberIds + pendingInvites >= 3)
 4. ✅ 接受邀请 → 成员加入 + pendingInvites 移除
 5. ✅ 排他清理 → 全局遍历移除其他队伍的邀请
 6. ✅ 离队申请 → 打异常标记
-7. ✅ lint / typecheck / build 全部通过
+
+### API 集成测试 (Vitest, 覆盖 13 个路由)
+7. ✅ 登录: 有效/无效 Builder 号、Cookie 设置、退出清除
+8. ✅ 鉴权: 未登录 401、有效 Cookie 200
+9. ✅ /api/team/my: 数据泄漏修复（仅返回队友）
+10. ✅ 邀请: 自邀请/目标不存在/已入队/非队长/满员/重复/自动建队
+11. ✅ 接受邀请: 未收到/已入队/满员/排他清理
+12. ✅ 拒绝邀请: 未收到/成功移除
+13. ✅ 修改队名/宣言/状态: 非队长 403/参数校验/成功修改
+14. ✅ 离队申请: 未入队/重复/打标记
+15. ✅ 大屏接口: 系统状态/队伍列表/DiceBear 默认头像
+
+### E2E 测试 (Playwright, 5 tests)
+16. ✅ 登录流程: 输入 Builder 号 → Cookie → Dashboard 渲染
+17. ✅ 登录错误: 无效 Builder 号显示错误
+18. ✅ 组队: 队长邀请自由人
+19. ✅ 自由人: 看到 Dashboard
+20. ✅ 大屏: 无鉴权访问 → 倒计时 → 队伍看板
+
+### 静态检查
+21. ✅ lint: 0 errors, 0 warnings
+22. ✅ typecheck: 通过
+23. ✅ build: 成功
 
 ## 环境变量
 
