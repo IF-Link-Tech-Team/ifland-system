@@ -10,7 +10,8 @@
       "bio": "热爱 AI 的后端选手",
       "teamId": "T-001",
       "abnormalMark": null,
-      "openId": ""
+      "openId": "",
+      "presenceStatus": "在场"
     },
     {
       "builderId": "222",
@@ -22,7 +23,8 @@
       "bio": "喜欢写前端的设计师",
       "teamId": null,
       "abnormalMark": null,
-      "openId": ""
+      "openId": "",
+      "presenceStatus": "在场"
     },
     {
       "builderId": "333",
@@ -34,7 +36,8 @@
       "bio": "产品经理，擅长路演",
       "teamId": null,
       "abnormalMark": null,
-      "openId": ""
+      "openId": "",
+      "presenceStatus": "离场"
     },
     {
       "builderId": "444",
@@ -46,7 +49,8 @@
       "bio": "硬件大神，焊板子一把好手",
       "teamId": "T-002",
       "abnormalMark": null,
-      "openId": ""
+      "openId": "",
+      "presenceStatus": "在场"
     }
   ],
   "teams": [

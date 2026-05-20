@@ -54,22 +54,24 @@ export function TeamBoard({ teams }: TeamBoardProps) {
           <div className="mt-3 flex items-center gap-2">
             {team.members.map((member) => (
               <div key={member.builderId} className="flex items-center gap-1.5">
-                <div className="relative h-6 w-6 overflow-hidden rounded-full border border-neon-cyan/20">
+                <div className={`relative h-6 w-6 overflow-hidden rounded-full border ${member.presenceStatus === "离场" ? "border-muted/30" : "border-neon-cyan/20"}`}>
                   <Image
                     src={member.avatar}
                     alt={member.name}
                     fill
-                    className="object-cover"
+                    className={`object-cover ${member.presenceStatus === "离场" ? "grayscale opacity-40" : ""}`}
                     unoptimized
                   />
                 </div>
-                <span className="text-xs">{member.name}</span>
+                <span className={`text-xs ${member.presenceStatus === "离场" ? "text-muted-foreground/40 line-through" : ""}`}>
+                  {member.name}
+                </span>
               </div>
             ))}
           </div>
 
           <p className="mt-2 text-muted-foreground/60 text-xs">
-            {team.memberCount}/3 人
+            {team.presentCount}/{team.memberCount} 人在场
           </p>
         </div>
       ))}

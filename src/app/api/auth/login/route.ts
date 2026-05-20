@@ -36,6 +36,7 @@ export async function POST(request: NextRequest) {
       teamId: user.teamId,
       abnormalMark: user.abnormalMark,
       openId: user.openId,
+      presenceStatus: user.presenceStatus,
     });
 
     const isSecure = process.env.NODE_ENV === "production";

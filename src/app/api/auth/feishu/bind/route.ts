@@ -63,6 +63,7 @@ export async function POST(request: NextRequest) {
       teamId: updatedUser.teamId,
       abnormalMark: updatedUser.abnormalMark,
       openId: updatedUser.openId,
+      presenceStatus: updatedUser.presenceStatus,
     });
 
     response.cookies.set("auth_token", updatedUser.builderId, {

@@ -17,7 +17,10 @@ export async function GET() {
         name: u!.name,
         role: u!.role,
         avatar: u!.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${u!.builderId}`,
+        presenceStatus: u!.presenceStatus,
       }));
+
+    const presentCount = members.filter((m) => m.presenceStatus === "在场").length;
 
     return {
       teamId: team.teamId,
@@ -26,6 +29,7 @@ export async function GET() {
       captainId: team.captainId,
       status: team.status,
       memberCount: team.memberIds.length,
+      presentCount,
       members,
     };
   });

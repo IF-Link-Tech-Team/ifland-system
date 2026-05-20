@@ -1,6 +1,9 @@
 /** 用户角色 */
 export type UserRole = "NAVIGATOR" | "WEAVER" | "LINKER" | "ARTIFICER" | "ANOMALY";
 
+/** 在场状态 */
+export type PresenceStatus = "在场" | "离场";
+
 /** 用户信息 */
 export interface User {
   builderId: string;
@@ -13,6 +16,7 @@ export interface User {
   teamId: string | null;
   abnormalMark: string | null;
   openId: string;
+  presenceStatus: PresenceStatus;
 }
 
 /** 队伍状态 */
@@ -74,6 +78,7 @@ export interface TeamMemberSummary {
   name: string;
   role: string;
   avatar: string;
+  presenceStatus: PresenceStatus;
 }
 
 /** 队伍信息摘要（大屏展示用） */
@@ -84,6 +89,7 @@ export interface TeamInfo {
   captainId: string;
   status: TeamStatus;
   memberCount: number;
+  presentCount: number;
   members: TeamMemberSummary[];
 }
 

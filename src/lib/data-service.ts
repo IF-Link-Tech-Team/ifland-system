@@ -117,6 +117,7 @@ async function findTeamRecordId(teamId: string): Promise<string | null> {
 // ==================== 辅助函数：字段映射 ====================
 
 function mapFeishuUser(fields: Record<string, unknown>, teamId: string | null): User {
+  const status = extractSelectValue(fields["在场状态"]);
   return {
     builderId: extractTextValue(fields["Builder号"]),
     name: extractTextValue(fields["姓名"]),
@@ -128,6 +129,7 @@ function mapFeishuUser(fields: Record<string, unknown>, teamId: string | null): 
     teamId,
     abnormalMark: extractTextValue(fields["异常标记"]) || null,
     openId: extractTextValue(fields["open_id"]),
+    presenceStatus: status === "离场" ? "离场" : "在场",
   };
 }
 
@@ -234,6 +236,7 @@ export async function updateUser(builderId: string, updates: Partial<User>): Pro
   if (updates.email !== undefined) fields["邮箱"] = updates.email;
   if (updates.role !== undefined) fields["角色"] = updates.role;
   if (updates.bio !== undefined) fields["自我介绍"] = updates.bio;
+  if (updates.presenceStatus !== undefined) fields["在场状态"] = updates.presenceStatus;
 
   await feishu.updateRecord(TABLE_USERS(), record.recordId, fields);
   return true;

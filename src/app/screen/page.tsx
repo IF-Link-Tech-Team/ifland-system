@@ -64,6 +64,20 @@ export default function ScreenPage() {
           )}
         </div>
 
+        {/* 总体统计 */}
+        <div className="mb-6 flex items-center justify-center gap-6">
+          {(() => {
+            const total = teams.reduce((s, t) => s + t.memberCount, 0);
+            const present = teams.reduce((s, t) => s + t.presentCount, 0);
+            return (
+              <div className="rounded-lg border border-neon-cyan/20 bg-card/50 px-6 py-3 text-center">
+                <p className="text-2xl font-bold text-neon-cyan">{present}/{total}</p>
+                <p className="text-muted-foreground text-xs">在场/总人数</p>
+              </div>
+            );
+          })()}
+        </div>
+
         {/* 队伍看板 */}
         <div>
           <h2 className="neon-glow-magenta mb-4 text-lg font-semibold text-neon-magenta">
