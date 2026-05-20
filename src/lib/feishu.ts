@@ -67,6 +67,13 @@ async function feishuRequest(path: string, options: RequestInit = {}): Promise<u
   return res.json();
 }
 
+/** 记录飞书 API 错误日志 */
+function logFeishuError(context: string, data: { code: number; msg?: string }) {
+  if (data.code !== 0) {
+    console.error(`[Feishu API Error] ${context}: code=${data.code}, msg=${data.msg ?? "unknown"}`);
+  }
+}
+
 // ==================== 多维表格 API ====================
 
 const BASE_TOKEN = () => process.env.FEISHU_BASE_APP_TOKEN ?? "";
@@ -108,6 +115,7 @@ export async function searchRecords(
       }
     )) as {
       code: number;
+      msg?: string;
       data?: {
         items: Record<string, unknown>[];
         total?: number;
@@ -116,7 +124,11 @@ export async function searchRecords(
       };
     };
 
-    if (data.code !== 0) break;
+    if (data.code !== 0) {
+      logFeishuError(`searchRecords(${tableId}, pageToken=${pageToken ?? "init"})`, data);
+      // 返回已获取的数据，不丢失分页进度
+      return allItems;
+    }
 
     const items = data.data?.items ?? [];
     allItems.push(...items);
@@ -157,8 +169,9 @@ export async function listRecords(
 export async function getRecord(tableId: string, recordId: string): Promise<Record<string, unknown> | null> {
   const data = (await feishuRequest(
     `/open-apis/bitable/v1/apps/${BASE_TOKEN()}/tables/${tableId}/records/${recordId}`
-  )) as { code: number; data: { record: Record<string, unknown> } };
+  )) as { code: number; msg?: string; data: { record: Record<string, unknown> } };
 
+  logFeishuError(`getRecord(${tableId}, ${recordId})`, data);
   if (data.code !== 0) return null;
   return data.data?.record ?? null;
 }
@@ -174,8 +187,9 @@ export async function createRecord(
       method: "POST",
       body: JSON.stringify({ fields }),
     }
-  )) as { code: number; data: { record: Record<string, unknown> } };
+  )) as { code: number; msg?: string; data: { record: Record<string, unknown> } };
 
+  logFeishuError(`createRecord(${tableId})`, data);
   if (data.code !== 0) return null;
   return data.data?.record ?? null;
 }
@@ -192,13 +206,17 @@ export async function updateRecord(
       method: "PUT",
       body: JSON.stringify({ fields }),
     }
-  )) as { code: number; data: { record: Record<string, unknown> } };
+  )) as { code: number; msg?: string; data: { record: Record<string, unknown> } };
 
+  logFeishuError(`updateRecord(${tableId}, ${recordId})`, data);
   if (data.code !== 0) return null;
   return data.data?.record ?? null;
 }
 
-/** 批量更新记录（同一份 patch 应用到多个 record_id） */
+/**
+ * 批量更新记录（v3 API，同一份 patch 应用到多个 record_id）
+ * 注意：使用 base/v3 路径，请求体为 {record_id_list, patch}
+ */
 export async function batchUpdateRecords(
   tableId: string,
   recordIdList: string[],
@@ -206,13 +224,14 @@ export async function batchUpdateRecords(
 ): Promise<boolean> {
   if (recordIdList.length === 0) return true;
   const data = (await feishuRequest(
-    `/open-apis/bitable/v1/apps/${BASE_TOKEN()}/tables/${tableId}/records/batch_update`,
+    `/open-apis/base/v3/bases/${BASE_TOKEN()}/tables/${tableId}/records/batch_update`,
     {
       method: "POST",
-      body: JSON.stringify({ record_id_list: recordIdList, records: recordIdList.map(() => ({ fields: patch })) }),
+      body: JSON.stringify({ record_id_list: recordIdList, patch }),
     }
-  )) as { code: number };
+  )) as { code: number; msg?: string };
 
+  logFeishuError(`batchUpdateRecords(${tableId}, ${recordIdList.length} records)`, data);
   return data.code === 0;
 }
 
@@ -221,8 +240,9 @@ export async function deleteRecord(tableId: string, recordId: string): Promise<b
   const data = (await feishuRequest(
     `/open-apis/bitable/v1/apps/${BASE_TOKEN()}/tables/${tableId}/records/${recordId}`,
     { method: "DELETE" }
-  )) as { code: number };
+  )) as { code: number; msg?: string };
 
+  logFeishuError(`deleteRecord(${tableId}, ${recordId})`, data);
   return data.code === 0;
 }
 

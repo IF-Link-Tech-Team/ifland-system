@@ -9,6 +9,9 @@ import {
 } from "@/lib/data-service";
 import { withMockDelay } from "@/lib/mock-delay";
 
+/** 排他清理最大处理队伍数，防止延迟累积导致请求超时 */
+const MAX_EXCLUSIVE_CLEANUP = 5;
+
 export async function POST(request: NextRequest) {
   await withMockDelay(500);
 
@@ -72,12 +75,19 @@ export async function POST(request: NextRequest) {
       (t) => t.teamId !== teamId && t.pendingInvites.includes(builderId)
     );
 
-    for (let i = 0; i < teamsToClean.length; i++) {
-      const otherTeam = teamsToClean[i];
+    // 限制处理数量，防止延迟累积导致请求超时
+    const limitedTeams = teamsToClean.slice(0, MAX_EXCLUSIVE_CLEANUP);
+    const skipped = teamsToClean.length - limitedTeams.length;
+    if (skipped > 0) {
+      console.warn(`[ExclusiveCleanup] ${skipped} teams skipped due to MAX_EXCLUSIVE_CLEANUP limit`);
+    }
+
+    for (let i = 0; i < limitedTeams.length; i++) {
+      const otherTeam = limitedTeams[i];
       const cleaned = otherTeam.pendingInvites.filter((id) => id !== builderId);
       await updateTeam(otherTeam.teamId, { pendingInvites: cleaned });
       // 批次间延迟 500ms，避免并发写冲突（最后一条不需要延迟）
-      if (i < teamsToClean.length - 1) {
+      if (i < limitedTeams.length - 1) {
         await new Promise((resolve) => setTimeout(resolve, 500));
       }
     }

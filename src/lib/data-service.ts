@@ -308,7 +308,9 @@ export async function createTeam(team: Team): Promise<Team | null> {
     "队名": team.name,
     "一句话宣言": team.slogan,
     "队长": makeLinkValue(captainRecordId),
-    "受邀名单 (pendingInvites)": team.pendingInvites.join(","),
+    "受邀名单 (pendingInvites)": team.pendingInvites.length > 0
+      ? team.pendingInvites.join(",")
+      : "",
     "队伍状态": team.status,
   };
 
@@ -334,7 +336,10 @@ export async function updateTeam(teamId: string, updates: Partial<Team>): Promis
   if (updates.name !== undefined) fields["队名"] = updates.name;
   if (updates.slogan !== undefined) fields["一句话宣言"] = updates.slogan;
   if (updates.pendingInvites !== undefined) {
-    fields["受邀名单 (pendingInvites)"] = updates.pendingInvites.join(",");
+    // 同时支持文本字段（逗号分隔）和多选字段（数组）
+    fields["受邀名单 (pendingInvites)"] = updates.pendingInvites.length > 0
+      ? updates.pendingInvites.join(",")
+      : "";
   }
   if (updates.status !== undefined) fields["队伍状态"] = updates.status;
   if (updates.captainId !== undefined) {
