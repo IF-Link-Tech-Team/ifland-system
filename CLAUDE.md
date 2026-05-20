@@ -1,4 +1,4 @@
-🤖 黑客松现场系统 - AI 开发者全局规矩 (AGENTS.md / .cursorrules)
+🤖 黑客松现场系统 - AI 开发者全局规矩 (docs/AGENTS.md / .cursorrules)
 0. 你的角色 (Role)
 你现在是一位顶级的全栈工程师，负责为一个黑客松活动开发"现场协同与展示系统"。 你的编码风格必须：极简、健壮、移动端优先、严格遵循安全规范。不要过度工程（Over-engineering），不要引入不需要的庞大依赖库。
 
@@ -56,12 +56,12 @@ POST	/api/upload/avatar	头像上传（Phase 1：本地直存；Phase 2：TOS）
 目前系统处于 Phase 1（本地 Demo 开发期），飞书 API 尚未正式打通。你必须遵循以下 Mock 规则：
 
 禁止强行请求外部 API：在开发服务端接口时，不要尝试向真实的 open.feishu.cn 发送请求。
-使用本地 Mock 数据：在根目录或 src/mocks 下维护一个 mock_data.json（结构参照 PRD_and_Data.md 第 12 节），严禁深层嵌套。
+使用本地 Mock 数据：在根目录或 src/mocks 下维护一个 mock_data.json（结构参照 docs/PRD_and_Data.md 第 12 节），严禁深层嵌套。
 模拟网络延迟：在 API 路由中读取 mock_data.json 时，人为增加 setTimeout(..., 500) 来模拟真实的飞书 API 延迟，以测试前端的 Loading 状态。
 头像上传 (Phase 1 专属)：对于头像上传逻辑，Phase 1 阶段仅需将接收到的图片保存到本机的 /public/uploads 目录，并返回相对于 localhost 的静态资源 URL。必须将此逻辑封装在独立的 uploadAvatar() 函数中，以便未来一键切换至云端 OSS。
 默认头像：未上传头像的用户，使用 DiceBear API 生成专属默认头像（如 https://api.dicebear.com/7.x/initials/svg?seed={builderId}）。
 6. 组队核心逻辑约束 (必读)
-请在实现组队功能时，严格遵循以下业务规则（详见 PRD_and_Data.md 第 5.3 节）：
+请在实现组队功能时，严格遵循以下业务规则（详见 docs/PRD_and_Data.md 第 5.3 节）：
 
 双向确认制：邀请不是即时生效的，被邀请方（B）需要主动"同意"才能加入队伍。
 名额锁定：当前人数 + pendingInvites.length >= 3 时，队长的邀请按钮立即置灰禁用。
@@ -76,11 +76,11 @@ TypeScript 严格模式：所有组件、API 参数、飞书返回的数据结�
 8. 任务执行与自动化工作流 (Workflow Protocol)
 在执行人类指派的开发任务时，你必须遵循以下闭环流程：
 
-阅读上下文：开始干活前，先读取 PRD_and_Data.md 和 TASKS.md。
+阅读上下文：开始干活前，先读取 docs/PRD_and_Data.md 和 docs/TASKS.md。
 渐进式提交：不要把整个系统写在一个文件里。按照组件化思想拆分代码。
 自检测试：完成一个逻辑模块后，务必思考并发情况（例如：队伍已满 3 人时，是否有拦截逻辑？邀请被接受时是否正确执行了排他清理？）。
 静默执行 CLI 命令：当代码编写完成后，如果是支持终端执行的 AI，请自动运行 npm run lint 和 npm run typecheck。如果发现错误，自动修复它们，不要等待人类下达修复指令。
-更新进度：当一个任务（例如 T01）确认完成后，主动提醒人类在 TASKS.md 中打钩。
+更新进度：当一个任务（例如 T01）确认完成后，主动提醒人类在 docs/TASKS.md 中打钩。
 9. 🧪 测试规范 (Testing Standards)
 单元测试 / API 测试：使用 Vitest（与 Next.js + TypeScript 零摩擦集成）。每个 API Route 必须有对应的测试文件，覆盖正常路径与边界情况（如锁位拦截、排他清理、越权防护）。
 E2E 测试：使用 Playwright。核心 E2E 路径必须覆盖：
@@ -88,7 +88,7 @@ E2E 测试：使用 Playwright。核心 E2E 路径必须覆盖：
 组队流程（自由人建队 → 邀请 → 接受 → 排他清理 → 权限隔离）
 大屏轮询（/screen 无鉴权访问 → 倒计时渲染 → 队伍看板更新）
 测试产出同步：完成每个 T 任务后，必须同步产出/更新对应的测试代码，确保核心逻辑被覆盖。测试文件放置在 src/__tests__/ 或 tests/ 目录下，与对应模块同命名。
-TESTING.md 维护：AI 必须在项目根目录维护一个 TESTING.md 文件，动态记录以下内容：
+TESTING.md 维护：AI 必须在 docs/ 目录维护一个 TESTING.md 文件，动态记录以下内容：
 测试范围与覆盖矩阵（哪些 API Route / 组件已有测试，哪些待补）
 运行命令（npm run test / npm run test:e2e）
 已覆盖的核心场景（登录 / 组队 / 大屏）
