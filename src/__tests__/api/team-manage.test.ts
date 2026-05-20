@@ -126,17 +126,32 @@ describe("POST /api/team/leave-request", () => {
 
   it("已有异常标记返回 400（防重复）", async () => {
     const data = readMockData();
-    data.users.find((u) => u.builderId === "111")!.abnormalMark = "申请离队";
+    data.users.find((u) => u.builderId === "222")!.teamId = "T-001";
+    data.users.find((u) => u.builderId === "222")!.abnormalMark = "申请离队";
+    data.teams.find((t) => t.teamId === "T-001")!.memberIds.push("222");
     writeMockData(data);
 
-    const res = await leaveRequest(authedPost("111", {}, "http://localhost:3000/api/team/leave-request"));
+    const res = await leaveRequest(authedPost("222", {}, "http://localhost:3000/api/team/leave-request"));
     const json = await res.json();
     expect(json.ok).toBe(false);
     expect(json.error).toContain("重复");
   });
 
-  it("成功申请离队：API 返回 ok", async () => {
+  it("队长申请离队返回 403", async () => {
     const res = await leaveRequest(authedPost("111", {}, "http://localhost:3000/api/team/leave-request"));
+    const json = await res.json();
+    expect(res.status).toBe(403);
+    expect(json.ok).toBe(false);
+    expect(json.error).toContain("队长");
+  });
+
+  it("队员成功申请离队：API 返回 ok", async () => {
+    const data = readMockData();
+    data.users.find((u) => u.builderId === "222")!.teamId = "T-001";
+    data.teams.find((t) => t.teamId === "T-001")!.memberIds.push("222");
+    writeMockData(data);
+
+    const res = await leaveRequest(authedPost("222", {}, "http://localhost:3000/api/team/leave-request"));
     const json = await res.json();
     expect(json.ok).toBe(true);
   });

@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 1. 加入队伍（不可变方式构造新数组）
+    // 1. 加入队伍
     await updateUser(builderId, { teamId });
     const newMemberIds = [...team.memberIds, builderId];
     const newPendingInvites = team.pendingInvites.filter((id) => id !== builderId);
@@ -66,15 +66,19 @@ export async function POST(request: NextRequest) {
       pendingInvites: newPendingInvites,
     });
 
-    // 2. 排他清理：全局遍历其他队伍
+    // 2. 排他清理：串行写入 + 延迟，避免飞书并发写冲突 (1254291)
     const allTeams = await getAllTeams();
-    for (const otherTeam of allTeams) {
-      if (otherTeam.teamId === teamId) continue;
-      if (otherTeam.pendingInvites.includes(builderId)) {
-        const cleaned = otherTeam.pendingInvites.filter((id) => id !== builderId);
-        await updateTeam(otherTeam.teamId, {
-          pendingInvites: cleaned,
-        });
+    const teamsToClean = allTeams.filter(
+      (t) => t.teamId !== teamId && t.pendingInvites.includes(builderId)
+    );
+
+    for (let i = 0; i < teamsToClean.length; i++) {
+      const otherTeam = teamsToClean[i];
+      const cleaned = otherTeam.pendingInvites.filter((id) => id !== builderId);
+      await updateTeam(otherTeam.teamId, { pendingInvites: cleaned });
+      // 批次间延迟 500ms，避免并发写冲突（最后一条不需要延迟）
+      if (i < teamsToClean.length - 1) {
+        await new Promise((resolve) => setTimeout(resolve, 500));
       }
     }
 

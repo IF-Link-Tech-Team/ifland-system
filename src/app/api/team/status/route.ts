@@ -16,10 +16,10 @@ export async function PUT(request: NextRequest) {
   if (!user) return unauthorizedResponse();
 
   try {
-    const { teamId, status } = await request.json();
-    if (!teamId || !status) {
+    const { teamId: bodyTeamId, status } = await request.json();
+    if (!status) {
       return NextResponse.json(
-        { ok: false, error: "缺少队伍 ID 或状态" },
+        { ok: false, error: "缺少状态" },
         { status: 400 }
       );
     }
@@ -28,6 +28,21 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json(
         { ok: false, error: "无效的状态值" },
         { status: 400 }
+      );
+    }
+
+    // I-09: 从用户上下文获取 teamId，不信任请求体
+    const teamId = user.teamId;
+    if (!teamId) {
+      return NextResponse.json(
+        { ok: false, error: "你未加入任何队伍" },
+        { status: 400 }
+      );
+    }
+    if (bodyTeamId && bodyTeamId !== teamId) {
+      return NextResponse.json(
+        { ok: false, error: "只能修改自己所在队伍" },
+        { status: 403 }
       );
     }
 

@@ -34,13 +34,13 @@
 | E2E: 登录流程 | `e2e/login.spec.ts` | ✅ 已覆盖 |
 | E2E: 组队流程 | `e2e/team.spec.ts` | ✅ 已覆盖 |
 | E2E: 大屏轮询 | `e2e/screen.spec.ts` | ✅ 已覆盖 |
-| 飞书 API 集成 | 需配置 .env.local | ⏳ 待人类配置后验证 |
+| 飞书 API 集成 | 需配置 .env.local | ✅ 代码层已修复，待联调验证 |
 | 头像上传 | 手动验收 | ✅ Phase 1 本地直存 |
 | PWA 安装 | 手动验收 | ✅ Android/iOS 双端 |
 
 ## 已覆盖核心场景
 
-### 单元测试 (Vitest, 54 tests)
+### 单元测试 (Vitest, 55 tests)
 1. ✅ Mock 数据读取与结构验证
 2. ✅ 队长邀请 → pendingInvites 追加
 3. ✅ 锁位校验 (memberIds + pendingInvites >= 3)
@@ -56,8 +56,9 @@
 11. ✅ 接受邀请: 未收到/已入队/满员/排他清理
 12. ✅ 拒绝邀请: 未收到/成功移除
 13. ✅ 修改队名/宣言/状态: 非队长 403/参数校验/成功修改
-14. ✅ 离队申请: 未入队/重复/打标记
+14. ✅ 离队申请: 未入队/重复/队长拦截 403/队员成功
 15. ✅ 大屏接口: 系统状态/队伍列表/DiceBear 默认头像
+16. ✅ 强制解散触发: system/status 轮询检测并执行解散
 
 ### E2E 测试 (Playwright, 5 tests)
 16. ✅ 登录流程: 输入 Builder 号 → Cookie → Dashboard 渲染
@@ -66,10 +67,24 @@
 19. ✅ 自由人: 看到 Dashboard
 20. ✅ 大屏: 无鉴权访问 → 倒计时 → 队伍看板
 
+### 飞书连接修复 (2026-05-20)
+21. ✅ search API 迁移: listRecords → searchRecords (I-01)
+22. ✅ 分页处理: 自动翻页直到 has_more=false (I-02)
+23. ✅ 关联字段写入: `[{id: "rec_xxx"}]` 格式 + record_id 查找 (I-03)
+24. ✅ 关联字段读取: 解析 record_ids / link_record_ids (I-04)
+25. ✅ 单选字段解析: 处理字符串和对象两种格式 (I-05)
+26. ✅ updateUser 字段映射: 补充 name/phone/email/role/bio (I-06)
+27. ✅ 排他清理并发: 串行写入 + 500ms 批次延迟 (I-07)
+28. ✅ Cookie 安全: 生产环境启用 secure 标志 (I-08)
+29. ✅ teamId 来源: name/slogan/status 路由使用 user.teamId (I-09)
+30. ✅ forceDisbandTrigger: system/status 轮询检测并执行解散 (I-10)
+31. ✅ 队长离队拦截: leave-request 返回 403 (I-11)
+32. ✅ 成员列表单一数据源: 以 User 表所属团队为准 (I-12)
+
 ### 静态检查
-21. ✅ lint: 0 errors, 0 warnings
-22. ✅ typecheck: 通过
-23. ✅ build: 成功
+33. ✅ lint: 0 errors, 0 warnings
+34. ✅ typecheck: 通过
+35. ✅ build: 成功
 
 ## 环境变量
 

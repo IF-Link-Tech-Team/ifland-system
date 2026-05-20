@@ -37,10 +37,12 @@ export async function POST(request: NextRequest) {
       abnormalMark: user.abnormalMark,
     });
 
+    const isSecure = process.env.NODE_ENV === "production";
     response.cookies.set("auth_token", user.builderId, {
       path: "/",
       httpOnly: true,
       sameSite: "lax",
+      secure: isSecure,
       maxAge: 60 * 60 * 24, // 24 小时
     });
 

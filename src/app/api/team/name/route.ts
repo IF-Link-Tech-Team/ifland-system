@@ -13,11 +13,27 @@ export async function PUT(request: NextRequest) {
   if (!user) return unauthorizedResponse();
 
   try {
-    const { teamId, name } = await request.json();
-    if (!teamId || !name || typeof name !== "string") {
+    const { teamId: bodyTeamId, name } = await request.json();
+    if (!name || typeof name !== "string") {
       return NextResponse.json(
-        { ok: false, error: "缺少队伍 ID 或队名" },
+        { ok: false, error: "缺少队名" },
         { status: 400 }
+      );
+    }
+
+    // I-09: 从用户上下文获取 teamId，不信任请求体
+    const teamId = user.teamId;
+    if (!teamId) {
+      return NextResponse.json(
+        { ok: false, error: "你未加入任何队伍" },
+        { status: 400 }
+      );
+    }
+    // 校验请求体中的 teamId（如提供）必须与用户所属队伍一致
+    if (bodyTeamId && bodyTeamId !== teamId) {
+      return NextResponse.json(
+        { ok: false, error: "只能修改自己所在队伍" },
+        { status: 403 }
       );
     }
 

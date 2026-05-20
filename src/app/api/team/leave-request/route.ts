@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getBuilderIdFromCookie, unauthorizedResponse } from "@/lib/mock-db";
-import { getUserByBuilderId, updateUser } from "@/lib/data-service";
+import { getUserByBuilderId, getTeamById, updateUser } from "@/lib/data-service";
 import { withMockDelay } from "@/lib/mock-delay";
 
 export async function POST(request: NextRequest) {
@@ -24,6 +24,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { ok: false, error: "已申请离队，请勿重复操作" },
         { status: 400 }
+      );
+    }
+
+    // I-11: 队长不能直接申请离队
+    const team = await getTeamById(user.teamId);
+    if (team && team.captainId === builderId) {
+      return NextResponse.json(
+        { ok: false, error: "队长不能直接申请离队，请先转让队长权限" },
+        { status: 403 }
       );
     }
 

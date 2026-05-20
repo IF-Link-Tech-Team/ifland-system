@@ -16,6 +16,108 @@ const TABLE_USERS = () => process.env.FEISHU_TABLE_ID_USERS ?? "";
 const TABLE_TEAMS = () => process.env.FEISHU_TABLE_ID_TEAMS ?? "";
 const TABLE_SYSTEM = () => process.env.FEISHU_TABLE_ID_SYSTEM ?? "";
 
+// ==================== 辅助函数：字段解析 ====================
+
+/** 解析单选字段值（处理字符串或对象格式） */
+function extractSelectValue(val: unknown): string {
+  if (typeof val === "string") return val;
+  if (val && typeof val === "object" && "text" in (val as object)) {
+    return (val as { text: string }).text;
+  }
+  return "";
+}
+
+/**
+ * 从关联字段返回格式中提取 record_id 列表
+ * 支持：文本回退 / listRecords 数组格式 / search 对象格式
+ */
+function extractLinkRecordIds(val: unknown): string[] {
+  if (!val) return [];
+  // 文本字段回退（直接存业务 ID 或 record_id）
+  if (typeof val === "string") return val ? [val] : [];
+  // listRecords 格式: [{ record_ids: [...], table_id: "...", text: "..." }]
+  if (Array.isArray(val)) {
+    const ids: string[] = [];
+    for (const item of val) {
+      if (typeof item === "object" && item !== null && "record_ids" in item) {
+        ids.push(...(item as { record_ids: string[] }).record_ids);
+      } else if (typeof item === "string") {
+        ids.push(item);
+      }
+    }
+    return ids;
+  }
+  // search 格式: { link_record_ids: [...] }
+  if (typeof val === "object" && val !== null && "link_record_ids" in val) {
+    return (val as { link_record_ids: string[] }).link_record_ids;
+  }
+  return [];
+}
+
+/** 解析 pendingInvites（逗号分隔文本 或 字符串数组） */
+function parsePendingInvites(val: unknown): string[] {
+  if (typeof val === "string") {
+    return val ? val.split(",").map((s) => s.trim()).filter(Boolean) : [];
+  }
+  if (Array.isArray(val)) {
+    return val.map(String).filter(Boolean);
+  }
+  return [];
+}
+
+/** 构造关联字段写入值 */
+function makeLinkValue(recordId: string | null): unknown {
+  if (!recordId) return null; // 清空
+  return [{ id: recordId }];
+}
+
+// ==================== 辅助函数：record_id 查找 ====================
+
+/** 查找用户的 record_id（用于关联字段写入） */
+async function findUserRecordId(builderId: string): Promise<string | null> {
+  const record = await feishu.findRecord(TABLE_USERS(), `CurrentValue.[Builder号]="${builderId}"`);
+  return record?.recordId ?? null;
+}
+
+/** 查找团队的 record_id（用于关联字段写入） */
+async function findTeamRecordId(teamId: string): Promise<string | null> {
+  const record = await feishu.findRecord(TABLE_TEAMS(), `CurrentValue.[团队ID]="${teamId}"`);
+  return record?.recordId ?? null;
+}
+
+// ==================== 辅助函数：字段映射 ====================
+
+function mapFeishuUser(fields: Record<string, unknown>, teamId: string | null): User {
+  return {
+    builderId: String(fields["Builder号"] ?? ""),
+    name: String(fields["姓名"] ?? ""),
+    phone: String(fields["电话"] ?? ""),
+    email: String(fields["邮箱"] ?? ""),
+    avatar: String(fields["头像"] ?? ""),
+    role: (extractSelectValue(fields["角色"]) as UserRole) || "ANOMALY",
+    bio: String(fields["自我介绍"] ?? ""),
+    teamId,
+    abnormalMark: String(fields["异常标记"] ?? "") || null,
+  };
+}
+
+function mapFeishuTeam(
+  fields: Record<string, unknown>,
+  captainId: string,
+  memberIds: string[]
+): Team {
+  return {
+    teamId: String(fields["团队ID"] ?? ""),
+    name: String(fields["队名"] ?? ""),
+    slogan: String(fields["一句话宣言"] ?? ""),
+    captainId,
+    memberIds,
+    pendingInvites: parsePendingInvites(fields["受邀名单 (pendingInvites)"]),
+    status: (extractSelectValue(fields["队伍状态"]) as TeamStatus) || "头脑风暴中",
+    abnormalMark: String(fields["异常标记"] ?? "") || null,
+  };
+}
+
 // ==================== 用户相关 ====================
 
 /** 根据 Builder 号获取用户 */
@@ -25,10 +127,21 @@ export async function getUserByBuilderId(builderId: string): Promise<User | null
     return findUserById(data, builderId);
   }
 
-  // 飞书模式：通过 Builder号 字段筛选
   const record = await feishu.findRecord(TABLE_USERS(), `CurrentValue.[Builder号]="${builderId}"`);
   if (!record) return null;
-  return mapFeishuUser(record.fields);
+
+  const fields = record.fields;
+  const linkIds = extractLinkRecordIds(fields["所属团队"]);
+  let teamId: string | null = null;
+  if (linkIds.length > 0) {
+    const teamRecord = await feishu.getRecord(TABLE_TEAMS(), linkIds[0]);
+    if (teamRecord) {
+      const tf = teamRecord.fields as Record<string, unknown>;
+      teamId = String(tf["团队ID"] ?? "") || null;
+    }
+  }
+
+  return mapFeishuUser(fields, teamId);
 }
 
 /** 获取全部用户 */
@@ -37,8 +150,25 @@ export async function getAllUsers(): Promise<User[]> {
     return readMockData().users;
   }
 
-  const records = await feishu.listRecords(TABLE_USERS());
-  return records.map((r) => mapFeishuUser(r.fields as Record<string, unknown>));
+  const [userRecords, teamRecords] = await Promise.all([
+    feishu.searchRecords(TABLE_USERS()),
+    feishu.searchRecords(TABLE_TEAMS()),
+  ]);
+
+  // 构建 team record_id → teamId 映射
+  const teamMap = new Map<string, string>();
+  for (const tr of teamRecords) {
+    const recId = String(tr.record_id ?? "");
+    const tid = String((tr.fields as Record<string, unknown>)["团队ID"] ?? "");
+    if (recId && tid) teamMap.set(recId, tid);
+  }
+
+  return userRecords.map((ur) => {
+    const fields = ur.fields as Record<string, unknown>;
+    const linkIds = extractLinkRecordIds(fields["所属团队"]);
+    const teamId = linkIds.length > 0 ? teamMap.get(linkIds[0]) ?? null : null;
+    return mapFeishuUser(fields, teamId);
+  });
 }
 
 /** 更新用户信息 */
@@ -56,9 +186,24 @@ export async function updateUser(builderId: string, updates: Partial<User>): Pro
   if (!record) return false;
 
   const fields: Record<string, unknown> = {};
-  if (updates.teamId !== undefined) fields["所属团队"] = updates.teamId || "";
+
+  if (updates.teamId !== undefined) {
+    if (updates.teamId) {
+      const teamRecordId = await findTeamRecordId(updates.teamId);
+      if (!teamRecordId) return false;
+      fields["所属团队"] = makeLinkValue(teamRecordId);
+    } else {
+      fields["所属团队"] = null; // 清空关联
+    }
+  }
+
   if (updates.abnormalMark !== undefined) fields["异常标记"] = updates.abnormalMark || "";
   if (updates.avatar !== undefined) fields["头像"] = updates.avatar;
+  if (updates.name !== undefined) fields["姓名"] = updates.name;
+  if (updates.phone !== undefined) fields["电话"] = updates.phone;
+  if (updates.email !== undefined) fields["邮箱"] = updates.email;
+  if (updates.role !== undefined) fields["角色"] = updates.role;
+  if (updates.bio !== undefined) fields["自我介绍"] = updates.bio;
 
   await feishu.updateRecord(TABLE_USERS(), record.recordId, fields);
   return true;
@@ -75,13 +220,31 @@ export async function getTeamById(teamId: string): Promise<Team | null> {
 
   const record = await feishu.findRecord(TABLE_TEAMS(), `CurrentValue.[团队ID]="${teamId}"`);
   if (!record) return null;
-  const team = mapFeishuTeam(record.fields);
 
-  // 飞书模式：通过"所属团队"字段反向查询成员
-  const memberRecords = await feishu.listRecords(TABLE_USERS(), `CurrentValue.[所属团队]="${teamId}"`);
-  team.memberIds = memberRecords.map((r) => String((r.fields as Record<string, unknown>)["Builder号"] ?? ""));
+  const teamRecId = record.recordId;
+  const teamFields = record.fields;
 
-  return team;
+  // 获取所有用户，反向查询成员 + 解析队长
+  const userRecords = await feishu.searchRecords(TABLE_USERS());
+  const memberIds: string[] = [];
+  const userMap = new Map<string, string>(); // record_id → builderId
+
+  for (const ur of userRecords) {
+    const fields = ur.fields as Record<string, unknown>;
+    const recId = String(ur.record_id ?? "");
+    const bid = String(fields["Builder号"] ?? "");
+    if (recId && bid) userMap.set(recId, bid);
+
+    const userTeamLinks = extractLinkRecordIds(fields["所属团队"]);
+    if (userTeamLinks.includes(teamRecId) && bid) {
+      memberIds.push(bid);
+    }
+  }
+
+  const captainLinkIds = extractLinkRecordIds(teamFields["队长"]);
+  const captainId = captainLinkIds.length > 0 ? userMap.get(captainLinkIds[0]) ?? "" : "";
+
+  return mapFeishuTeam(teamFields, captainId, memberIds);
 }
 
 /** 获取全部团队 */
@@ -90,28 +253,41 @@ export async function getAllTeams(): Promise<Team[]> {
     return readMockData().teams;
   }
 
-  const records = await feishu.listRecords(TABLE_TEAMS());
-  const teams = records.map((r) => mapFeishuTeam(r.fields as Record<string, unknown>));
+  const [teamRecords, userRecords] = await Promise.all([
+    feishu.searchRecords(TABLE_TEAMS()),
+    feishu.searchRecords(TABLE_USERS()),
+  ]);
 
-  // 批量查询所有用户，按所属团队分组，填充 memberIds
-  const allUserRecords = await feishu.listRecords(TABLE_USERS());
-  const usersByTeam = new Map<string, string[]>();
-  for (const ur of allUserRecords) {
+  // 构建 user record_id → builderId 映射
+  const userMap = new Map<string, string>();
+  for (const ur of userRecords) {
+    const recId = String(ur.record_id ?? "");
+    const bid = String((ur.fields as Record<string, unknown>)["Builder号"] ?? "");
+    if (recId && bid) userMap.set(recId, bid);
+  }
+
+  // 按 team record_id 分组成员
+  const membersByTeamRecId = new Map<string, string[]>();
+
+  for (const ur of userRecords) {
     const fields = ur.fields as Record<string, unknown>;
-    const userTeamId = String(fields["所属团队"] ?? "");
-    const builderId = String(fields["Builder号"] ?? "");
-    if (userTeamId && builderId) {
-      const list = usersByTeam.get(userTeamId) ?? [];
-      list.push(builderId);
-      usersByTeam.set(userTeamId, list);
+    const bid = String(fields["Builder号"] ?? "");
+    const teamLinks = extractLinkRecordIds(fields["所属团队"]);
+    for (const teamRecId of teamLinks) {
+      const list = membersByTeamRecId.get(teamRecId) ?? [];
+      if (bid) list.push(bid);
+      membersByTeamRecId.set(teamRecId, list);
     }
   }
 
-  for (const team of teams) {
-    team.memberIds = usersByTeam.get(team.teamId) ?? [];
-  }
+  return teamRecords.map((tr) => {
+    const fields = tr.fields as Record<string, unknown>;
+    const teamRecId = String(tr.record_id ?? "");
+    const captainLinkIds = extractLinkRecordIds(fields["队长"]);
+    const captainId = captainLinkIds.length > 0 ? userMap.get(captainLinkIds[0]) ?? "" : "";
 
-  return teams;
+    return mapFeishuTeam(fields, captainId, membersByTeamRecId.get(teamRecId) ?? []);
+  });
 }
 
 /** 创建新团队 */
@@ -123,12 +299,15 @@ export async function createTeam(team: Team): Promise<Team | null> {
     return team;
   }
 
-  const fields = {
+  // 查找队长的 record_id（关联字段写入需要）
+  const captainRecordId = await findUserRecordId(team.captainId);
+  if (!captainRecordId) return null;
+
+  const fields: Record<string, unknown> = {
     "团队ID": team.teamId,
     "队名": team.name,
     "一句话宣言": team.slogan,
-    "队长": team.captainId,
-    "成员列表": team.memberIds.join(","),
+    "队长": makeLinkValue(captainRecordId),
     "受邀名单 (pendingInvites)": team.pendingInvites.join(","),
     "队伍状态": team.status,
   };
@@ -154,9 +333,16 @@ export async function updateTeam(teamId: string, updates: Partial<Team>): Promis
   const fields: Record<string, unknown> = {};
   if (updates.name !== undefined) fields["队名"] = updates.name;
   if (updates.slogan !== undefined) fields["一句话宣言"] = updates.slogan;
-  if (updates.memberIds !== undefined) fields["成员列表"] = updates.memberIds.join(",");
-  if (updates.pendingInvites !== undefined) fields["受邀名单 (pendingInvites)"] = updates.pendingInvites.join(",");
+  if (updates.pendingInvites !== undefined) {
+    fields["受邀名单 (pendingInvites)"] = updates.pendingInvites.join(",");
+  }
   if (updates.status !== undefined) fields["队伍状态"] = updates.status;
+  if (updates.captainId !== undefined) {
+    const captainRecordId = await findUserRecordId(updates.captainId);
+    if (captainRecordId) {
+      fields["队长"] = makeLinkValue(captainRecordId);
+    }
+  }
 
   await feishu.updateRecord(TABLE_TEAMS(), record.recordId, fields);
   return true;
@@ -184,6 +370,47 @@ export async function getSystemConfig(): Promise<SystemConfig> {
 
 // ==================== 辅助函数 ====================
 
+/** 删除团队 */
+export async function deleteTeam(teamId: string): Promise<boolean> {
+  if (!USE_FEISHU()) {
+    const data = readMockData();
+    const idx = data.teams.findIndex((t) => t.teamId === teamId);
+    if (idx === -1) return false;
+    data.teams.splice(idx, 1);
+    writeMockData(data);
+    return true;
+  }
+
+  const record = await feishu.findRecord(TABLE_TEAMS(), `CurrentValue.[团队ID]="${teamId}"`);
+  if (!record) return false;
+
+  return await feishu.deleteRecord(TABLE_TEAMS(), record.recordId);
+}
+
+/** 更新系统配置 */
+export async function updateSystemConfig(updates: Partial<SystemConfig>): Promise<boolean> {
+  if (!USE_FEISHU()) {
+    const data = readMockData();
+    Object.assign(data.system, updates);
+    writeMockData(data);
+    return true;
+  }
+
+  const records = await feishu.searchRecords(TABLE_SYSTEM());
+  if (records.length === 0) return false;
+
+  const recordId = String(records[0].record_id ?? "");
+  if (!recordId) return false;
+
+  const fields: Record<string, unknown> = {};
+  if (updates.marqueeNotice !== undefined) fields["全局跑马灯通知"] = updates.marqueeNotice;
+  if (updates.endTime !== undefined) fields["比赛结束时间"] = updates.endTime;
+  if (updates.forceDisbandTrigger !== undefined) fields["强制解散触发"] = updates.forceDisbandTrigger;
+
+  await feishu.updateRecord(TABLE_SYSTEM(), recordId, fields);
+  return true;
+}
+
 /** 生成下一个团队 ID */
 export async function getNextTeamId(): Promise<string> {
   if (!USE_FEISHU()) {
@@ -199,39 +426,4 @@ export async function getNextTeamId(): Promise<string> {
   });
   const max = Math.max(...nums);
   return `T-${String(max + 1).padStart(3, "0")}`;
-}
-
-// ==================== 飞书字段映射 ====================
-
-function mapFeishuUser(fields: Record<string, unknown>): User {
-  return {
-    builderId: String(fields["Builder号"] ?? ""),
-    name: String(fields["姓名"] ?? ""),
-    phone: String(fields["电话"] ?? ""),
-    email: String(fields["邮箱"] ?? ""),
-    avatar: String(fields["头像"] ?? ""),
-    role: (fields["角色"] as UserRole) ?? "ANOMALY",
-    bio: String(fields["自我介绍"] ?? ""),
-    teamId: (fields["所属团队"] as string) || null,
-    abnormalMark: (fields["异常标记"] as string) || null,
-  };
-}
-
-function mapFeishuTeam(fields: Record<string, unknown>): Team {
-  const pendingStr = String(fields["受邀名单 (pendingInvites)"] ?? "");
-  const pendingInvites = pendingStr ? pendingStr.split(",").map((s) => s.trim()).filter(Boolean) : [];
-
-  const memberStr = String(fields["成员列表"] ?? "");
-  const memberIds = memberStr ? memberStr.split(",").map((s) => s.trim()).filter(Boolean) : [];
-
-  return {
-    teamId: String(fields["团队ID"] ?? ""),
-    name: String(fields["队名"] ?? ""),
-    slogan: String(fields["一句话宣言"] ?? ""),
-    captainId: String(fields["队长"] ?? ""),
-    memberIds,
-    pendingInvites,
-    status: (fields["队伍状态"] as TeamStatus) ?? "头脑风暴中",
-    abnormalMark: (fields["异常标记"] as string) || null,
-  };
 }
