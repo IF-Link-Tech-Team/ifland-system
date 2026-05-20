@@ -1,13 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getBuilderIdFromCookie, unauthorizedResponse } from "@/lib/mock-db";
 import { getUserByBuilderId, getTeamById, getAllUsers } from "@/lib/data-service";
-
-const MOCK_DELAY = 200;
+import { withMockDelay } from "@/lib/mock-delay";
 
 export async function GET(request: NextRequest) {
-  if (process.env.USE_FEISHU !== "true") {
-    await new Promise((r) => setTimeout(r, MOCK_DELAY));
-  }
+  await withMockDelay(200);
 
   const builderId = getBuilderIdFromCookie(request);
   if (!builderId) return unauthorizedResponse();
@@ -16,18 +13,23 @@ export async function GET(request: NextRequest) {
   if (!user) return unauthorizedResponse();
 
   let team = null;
+  let teamMembers: Awaited<ReturnType<typeof getAllUsers>> = [];
+
   if (user.teamId) {
     team = await getTeamById(user.teamId);
+    // 只返回当前队伍的成员信息，不泄露全场用户数据
+    if (team) {
+      const allUsers = await getAllUsers();
+      teamMembers = allUsers.filter((u) => team!.memberIds.includes(u.builderId));
+    }
   }
-
-  const allUsers = await getAllUsers();
 
   return NextResponse.json({
     ok: true,
     data: {
       user,
       team,
-      allUsers,
+      teamMembers,
     },
   });
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useEffect, useTransition } from "react";
 import { useAuth } from "@/contexts/auth-context";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -14,7 +14,7 @@ import { LogOut } from "lucide-react";
 import { PWAInstallButton } from "@/components/dashboard/pwa-install";
 import type { User, Team } from "@/types";
 
-async function fetchDashboardData(): Promise<{ team: Team | null; allUsers: User[] } | null> {
+async function fetchDashboardData(): Promise<{ team: Team | null; teamMembers: User[] } | null> {
   const res = await fetch("/api/team/my");
   if (res.ok) {
     const json = await res.json();
@@ -27,32 +27,32 @@ export default function DashboardPage() {
   const { user: authUser, loading: authLoading, logout, refreshUser } = useAuth();
   const router = useRouter();
   const [team, setTeam] = useState<Team | null>(null);
-  const [allUsers, setAllUsers] = useState<User[]>([]);
+  const [teamMembers, setTeamMembers] = useState<User[]>([]);
   const [dataLoading, setDataLoading] = useState(true);
   const [, startTransition] = useTransition();
 
-  // 触发数据刷新
   const handleDataRefresh = () => {
     startTransition(async () => {
       const data = await fetchDashboardData();
       if (data) {
         setTeam(data.team);
-        setAllUsers(data.allUsers);
+        setTeamMembers(data.teamMembers);
       }
       await refreshUser();
     });
   };
 
   // 首次加载
-  if (dataLoading && authUser) {
+  useEffect(() => {
+    if (!authUser) return;
     fetchDashboardData().then((data) => {
       if (data) {
         setTeam(data.team);
-        setAllUsers(data.allUsers);
+        setTeamMembers(data.teamMembers);
       }
       setDataLoading(false);
     });
-  }
+  }, [authUser]);
 
   const handleLogout = async () => {
     await logout();
@@ -106,10 +106,9 @@ export default function DashboardPage() {
         {authUser.teamId && team ? (
           <div className="mb-6">
             <TeamPanel
-              key={team.teamId + team.name + team.slogan + team.status + team.memberIds.join(",") + team.pendingInvites.join(",")}
               user={authUser}
               team={team}
-              allUsers={allUsers}
+              teamMembers={teamMembers}
               onTeamUpdate={handleDataRefresh}
               onUserUpdate={handleDataRefresh}
             />

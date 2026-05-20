@@ -4,32 +4,12 @@ import { useState, useEffect } from "react";
 import { Countdown } from "@/components/screen/countdown";
 import { TeamBoard } from "@/components/screen/team-board";
 import { MarqueeBanner } from "@/components/screen/marquee-banner";
-import type { TeamStatus } from "@/types";
-
-interface SystemStatus {
-  marqueeNotice: string;
-  endTime: string;
-}
-
-interface TeamInfo {
-  teamId: string;
-  name: string;
-  slogan: string;
-  captainId: string;
-  status: TeamStatus;
-  memberCount: number;
-  members: {
-    builderId: string;
-    name: string;
-    role: string;
-    avatar: string;
-  }[];
-}
+import type { SystemStatusResponse, TeamInfo } from "@/types";
 
 const POLL_INTERVAL = 5000;
 
 export default function ScreenPage() {
-  const [status, setStatus] = useState<SystemStatus | null>(null);
+  const [status, setStatus] = useState<SystemStatusResponse | null>(null);
   const [teams, setTeams] = useState<TeamInfo[]>([]);
 
   useEffect(() => {

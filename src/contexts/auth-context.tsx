@@ -1,13 +1,15 @@
 "use client";
+/* eslint-disable react-hooks/set-state-in-effect */
 
 import {
   createContext,
   useContext,
   useState,
+  useEffect,
   useCallback,
   type ReactNode,
 } from "react";
-import type { User, UserRole } from "@/types";
+import type { User } from "@/types";
 
 interface AuthContextValue {
   user: User | null;
@@ -22,7 +24,6 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [initialized, setInitialized] = useState(false);
 
   const refreshUser = useCallback(async () => {
     try {
@@ -41,10 +42,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   // 首次加载时检查登录态
-  if (!initialized) {
-    setInitialized(true);
+  useEffect(() => {
     refreshUser().finally(() => setLoading(false));
-  }
+  }, [refreshUser]);
 
   const login = useCallback(async (builderId: string) => {
     const res = await fetch("/api/auth/login", {
@@ -58,30 +58,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       throw new Error(json?.error ?? "登录失败");
     }
 
-    const userData: { builderId: string; name: string; role: UserRole; teamId: string | null } = await res.json();
-
-    // 从 /api/user/me 获取完整用户信息
-    const meRes = await fetch("/api/user/me");
-    if (meRes.ok) {
-      const meJson = await meRes.json();
-      if (meJson.ok) {
-        setUser(meJson.data);
-        return;
-      }
-    }
-
-    // 降级：用登录返回的有限信息构造 User 对象
-    setUser({
-      builderId: userData.builderId,
-      name: userData.name,
-      phone: "",
-      email: "",
-      avatar: "",
-      role: userData.role,
-      bio: "",
-      teamId: userData.teamId,
-      abnormalMark: null,
-    });
+    // 登录接口返回完整用户信息，直接写入 Context
+    const userData: User = await res.json();
+    setUser(userData);
   }, []);
 
   const logout = useCallback(async () => {

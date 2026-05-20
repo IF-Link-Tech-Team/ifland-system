@@ -1,12 +1,9 @@
 import { NextResponse } from "next/server";
 import { getAllTeams, getAllUsers } from "@/lib/data-service";
-
-const MOCK_DELAY = 200;
+import { withMockDelay } from "@/lib/mock-delay";
 
 export async function GET() {
-  if (process.env.USE_FEISHU !== "true") {
-    await new Promise((r) => setTimeout(r, MOCK_DELAY));
-  }
+  await withMockDelay(200);
 
   const teams = await getAllTeams();
   const allUsers = await getAllUsers();

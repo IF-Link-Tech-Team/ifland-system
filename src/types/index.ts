@@ -58,12 +58,32 @@ export interface ApiError {
 /** 统一响应联合类型 */
 export type ApiResponse<T> = ApiSuccess<T> | ApiError;
 
-/** 登录响应（例外格式：直接返回用户信息） */
-export interface LoginResponse {
+/** 登录响应（例外格式：直接返回完整用户信息） */
+export type LoginResponse = User;
+
+/** 系统状态响应（大屏/Dashboard 轮询） */
+export interface SystemStatusResponse {
+  marqueeNotice: string;
+  endTime: string;
+}
+
+/** 队伍成员摘要（大屏展示用） */
+export interface TeamMemberSummary {
   builderId: string;
   name: string;
-  role: UserRole;
-  teamId: string | null;
+  role: string;
+  avatar: string;
+}
+
+/** 队伍信息摘要（大屏展示用） */
+export interface TeamInfo {
+  teamId: string;
+  name: string;
+  slogan: string;
+  captainId: string;
+  status: TeamStatus;
+  memberCount: number;
+  members: TeamMemberSummary[];
 }
 
 /** 角色中文映射 */

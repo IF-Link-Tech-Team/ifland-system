@@ -1,6 +1,7 @@
 "use client";
+/* eslint-disable react-hooks/set-state-in-effect */
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -12,14 +13,14 @@ import { Pencil, Send, LogOut } from "lucide-react";
 interface TeamPanelProps {
   user: User;
   team: Team;
-  allUsers: User[];
+  teamMembers: User[];
   onTeamUpdate: () => void;
   onUserUpdate: () => void;
 }
 
 const STATUS_OPTIONS: TeamStatus[] = ["头脑风暴中", "开发中", "Demo提交"];
 
-export function TeamPanel({ user, team, allUsers, onTeamUpdate, onUserUpdate }: TeamPanelProps) {
+export function TeamPanel({ user, team, teamMembers, onTeamUpdate, onUserUpdate }: TeamPanelProps) {
   const isCaptain = team.captainId === user.builderId;
   const canInvite = isCaptain && team.memberIds.length + team.pendingInvites.length < 3;
   const [inviteId, setInviteId] = useState("");
@@ -30,6 +31,14 @@ export function TeamPanel({ user, team, allUsers, onTeamUpdate, onUserUpdate }: 
   const [editingSlogan, setEditingSlogan] = useState(false);
   const [nameValue, setNameValue] = useState(team.name);
   const [sloganValue, setSloganValue] = useState(team.slogan);
+
+  // 当 team 数据从外部更新时，重置编辑状态和本地值
+  useEffect(() => {
+    setNameValue(team.name);
+    setSloganValue(team.slogan);
+    setEditingName(false);
+    setEditingSlogan(false);
+  }, [team.name, team.slogan]);
 
   const handleInvite = () => {
     const targetId = inviteId.trim();
@@ -144,12 +153,7 @@ export function TeamPanel({ user, team, allUsers, onTeamUpdate, onUserUpdate }: 
     });
   };
 
-  // 获取队友详情
-  const members = team.memberIds
-    .map((id) => allUsers.find((u) => u.builderId === id))
-    .filter(Boolean) as User[];
-
-  const hasAbnormalMark = user.abnormalMark !== null && user.abnormalMark !== undefined && user.abnormalMark !== "";
+  const hasAbnormalMark = !!user.abnormalMark;
 
   return (
     <div className="space-y-4">
@@ -207,7 +211,7 @@ export function TeamPanel({ user, team, allUsers, onTeamUpdate, onUserUpdate }: 
 
       {/* 队员列表 */}
       <div className="space-y-2">
-        {members.map((member) => (
+        {teamMembers.map((member) => (
           <div
             key={member.builderId}
             className="flex items-center gap-3 rounded-lg border border-border bg-card p-3"

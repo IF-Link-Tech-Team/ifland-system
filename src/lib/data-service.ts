@@ -75,7 +75,13 @@ export async function getTeamById(teamId: string): Promise<Team | null> {
 
   const record = await feishu.findRecord(TABLE_TEAMS(), `CurrentValue.[团队ID]="${teamId}"`);
   if (!record) return null;
-  return mapFeishuTeam(record.fields);
+  const team = mapFeishuTeam(record.fields);
+
+  // 飞书模式：通过"所属团队"字段反向查询成员
+  const memberRecords = await feishu.listRecords(TABLE_USERS(), `CurrentValue.[所属团队]="${teamId}"`);
+  team.memberIds = memberRecords.map((r) => String((r.fields as Record<string, unknown>)["Builder号"] ?? ""));
+
+  return team;
 }
 
 /** 获取全部团队 */
@@ -85,7 +91,27 @@ export async function getAllTeams(): Promise<Team[]> {
   }
 
   const records = await feishu.listRecords(TABLE_TEAMS());
-  return records.map((r) => mapFeishuTeam(r.fields as Record<string, unknown>));
+  const teams = records.map((r) => mapFeishuTeam(r.fields as Record<string, unknown>));
+
+  // 批量查询所有用户，按所属团队分组，填充 memberIds
+  const allUserRecords = await feishu.listRecords(TABLE_USERS());
+  const usersByTeam = new Map<string, string[]>();
+  for (const ur of allUserRecords) {
+    const fields = ur.fields as Record<string, unknown>;
+    const userTeamId = String(fields["所属团队"] ?? "");
+    const builderId = String(fields["Builder号"] ?? "");
+    if (userTeamId && builderId) {
+      const list = usersByTeam.get(userTeamId) ?? [];
+      list.push(builderId);
+      usersByTeam.set(userTeamId, list);
+    }
+  }
+
+  for (const team of teams) {
+    team.memberIds = usersByTeam.get(team.teamId) ?? [];
+  }
+
+  return teams;
 }
 
 /** 创建新团队 */
@@ -102,6 +128,7 @@ export async function createTeam(team: Team): Promise<Team | null> {
     "队名": team.name,
     "一句话宣言": team.slogan,
     "队长": team.captainId,
+    "成员列表": team.memberIds.join(","),
     "受邀名单 (pendingInvites)": team.pendingInvites.join(","),
     "队伍状态": team.status,
   };
@@ -127,6 +154,7 @@ export async function updateTeam(teamId: string, updates: Partial<Team>): Promis
   const fields: Record<string, unknown> = {};
   if (updates.name !== undefined) fields["队名"] = updates.name;
   if (updates.slogan !== undefined) fields["一句话宣言"] = updates.slogan;
+  if (updates.memberIds !== undefined) fields["成员列表"] = updates.memberIds.join(",");
   if (updates.pendingInvites !== undefined) fields["受邀名单 (pendingInvites)"] = updates.pendingInvites.join(",");
   if (updates.status !== undefined) fields["队伍状态"] = updates.status;
 
@@ -193,12 +221,15 @@ function mapFeishuTeam(fields: Record<string, unknown>): Team {
   const pendingStr = String(fields["受邀名单 (pendingInvites)"] ?? "");
   const pendingInvites = pendingStr ? pendingStr.split(",").map((s) => s.trim()).filter(Boolean) : [];
 
+  const memberStr = String(fields["成员列表"] ?? "");
+  const memberIds = memberStr ? memberStr.split(",").map((s) => s.trim()).filter(Boolean) : [];
+
   return {
     teamId: String(fields["团队ID"] ?? ""),
     name: String(fields["队名"] ?? ""),
     slogan: String(fields["一句话宣言"] ?? ""),
     captainId: String(fields["队长"] ?? ""),
-    memberIds: [], // 需要通过关联查询补充
+    memberIds,
     pendingInvites,
     status: (fields["队伍状态"] as TeamStatus) ?? "头脑风暴中",
     abnormalMark: (fields["异常标记"] as string) || null,

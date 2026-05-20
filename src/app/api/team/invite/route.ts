@@ -9,13 +9,10 @@ import {
   createTeam,
 } from "@/lib/data-service";
 import type { Team } from "@/types";
-
-const MOCK_DELAY = 500;
+import { withMockDelay } from "@/lib/mock-delay";
 
 export async function POST(request: NextRequest) {
-  if (process.env.USE_FEISHU !== "true") {
-    await new Promise((r) => setTimeout(r, MOCK_DELAY));
-  }
+  await withMockDelay(500);
 
   const builderId = getBuilderIdFromCookie(request);
   if (!builderId) return unauthorizedResponse();

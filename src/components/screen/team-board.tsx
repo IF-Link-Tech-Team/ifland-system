@@ -1,22 +1,7 @@
 "use client";
 
-import type { TeamStatus } from "@/types";
+import type { TeamInfo, TeamStatus } from "@/types";
 import Image from "next/image";
-
-interface TeamInfo {
-  teamId: string;
-  name: string;
-  slogan: string;
-  captainId: string;
-  status: TeamStatus;
-  memberCount: number;
-  members: {
-    builderId: string;
-    name: string;
-    role: string;
-    avatar: string;
-  }[];
-}
 
 interface TeamBoardProps {
   teams: TeamInfo[];

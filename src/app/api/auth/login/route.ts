@@ -1,13 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getUserByBuilderId } from "@/lib/data-service";
-
-const MOCK_DELAY = 500;
+import { withMockDelay } from "@/lib/mock-delay";
 
 export async function POST(request: NextRequest) {
-  // Mock 模式下模拟延迟
-  if (process.env.USE_FEISHU !== "true") {
-    await new Promise((r) => setTimeout(r, MOCK_DELAY));
-  }
+  await withMockDelay(500);
 
   try {
     const { builderId } = await request.json();
@@ -28,12 +24,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 设置 HttpOnly Cookie
+    // 设置 HttpOnly Cookie，返回完整用户信息（避免登录后额外调用 /api/user/me）
     const response = NextResponse.json({
       builderId: user.builderId,
       name: user.name,
+      phone: user.phone,
+      email: user.email,
+      avatar: user.avatar,
       role: user.role,
+      bio: user.bio,
       teamId: user.teamId,
+      abnormalMark: user.abnormalMark,
     });
 
     response.cookies.set("auth_token", user.builderId, {

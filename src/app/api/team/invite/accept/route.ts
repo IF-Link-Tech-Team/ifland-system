@@ -7,13 +7,10 @@ import {
   updateUser,
   updateTeam,
 } from "@/lib/data-service";
-
-const MOCK_DELAY = 500;
+import { withMockDelay } from "@/lib/mock-delay";
 
 export async function POST(request: NextRequest) {
-  if (process.env.USE_FEISHU !== "true") {
-    await new Promise((r) => setTimeout(r, MOCK_DELAY));
-  }
+  await withMockDelay(500);
 
   const builderId = getBuilderIdFromCookie(request);
   if (!builderId) return unauthorizedResponse();
@@ -59,28 +56,24 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 1. 加入队伍
+    // 1. 加入队伍（不可变方式构造新数组）
     await updateUser(builderId, { teamId });
-    team.memberIds.push(builderId);
-
-    // 2. 从当前队伍的 pendingInvites 中移除
-    team.pendingInvites = team.pendingInvites.filter((id) => id !== builderId);
+    const newMemberIds = [...team.memberIds, builderId];
+    const newPendingInvites = team.pendingInvites.filter((id) => id !== builderId);
 
     await updateTeam(teamId, {
-      memberIds: team.memberIds,
-      pendingInvites: team.pendingInvites,
+      memberIds: newMemberIds,
+      pendingInvites: newPendingInvites,
     });
 
-    // 3. 排他清理：全局遍历其他队伍
+    // 2. 排他清理：全局遍历其他队伍
     const allTeams = await getAllTeams();
     for (const otherTeam of allTeams) {
       if (otherTeam.teamId === teamId) continue;
       if (otherTeam.pendingInvites.includes(builderId)) {
-        otherTeam.pendingInvites = otherTeam.pendingInvites.filter(
-          (id) => id !== builderId
-        );
+        const cleaned = otherTeam.pendingInvites.filter((id) => id !== builderId);
         await updateTeam(otherTeam.teamId, {
-          pendingInvites: otherTeam.pendingInvites,
+          pendingInvites: cleaned,
         });
       }
     }
@@ -89,7 +82,7 @@ export async function POST(request: NextRequest) {
       ok: true,
       data: {
         teamId,
-        memberIds: team.memberIds,
+        memberIds: newMemberIds,
       },
     });
   } catch {

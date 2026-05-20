@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 interface Invite {
   teamId: string;
@@ -25,17 +25,32 @@ async function fetchInvites(): Promise<Invite[]> {
   return [];
 }
 
+const POLL_INTERVAL = 10000; // 10 秒轮询
+
 export function InviteList({ onAccept }: InviteListProps) {
   const [invites, setInvites] = useState<Invite[] | null>(null);
   const [pending, startTransition] = useTransition();
+  const mountedRef = useRef(false);
 
-  // 初次加载
+  // 初次加载 + 10 秒轮询
   useEffect(() => {
     let cancelled = false;
-    fetchInvites().then((data) => {
-      if (!cancelled) setInvites(data);
-    });
-    return () => { cancelled = true; };
+    const load = () => {
+      fetchInvites().then((data) => {
+        if (!cancelled) setInvites(data);
+      });
+    };
+    load();
+    const interval = setInterval(load, POLL_INTERVAL);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, []);
+
+  // 标记已挂载（用于首次加载状态判断）
+  useEffect(() => {
+    mountedRef.current = true;
   }, []);
 
   const handleAccept = (teamId: string) => {

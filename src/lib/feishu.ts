@@ -148,8 +148,10 @@ export async function findRecord(
   if (records.length === 0) return null;
 
   const record = records[0];
+  const recordId = String(record.record_id ?? "");
+  if (!recordId) return null;
   return {
-    recordId: record.record_id as string,
+    recordId,
     fields: record.fields as Record<string, unknown>,
   };
 }
@@ -177,12 +179,7 @@ export async function getSystemStatus(tableId: string) {
   return fields;
 }
 
-/** 清除系统状态缓存（写入后调用） */
-export function clearSystemStatusCache() {
-  systemStatusCache = null;
-}
-
-/** 清除 Token 缓存 */
+/** 清除 Token 缓存（调试用） */
 export function clearTokenCache() {
   tokenCache = null;
 }

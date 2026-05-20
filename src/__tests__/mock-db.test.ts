@@ -1,18 +1,10 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import fs from "fs";
 import path from "path";
-import type { MockData } from "@/types";
+import { readMockData, writeMockData } from "@/lib/mock-db";
 
 const MOCK_PATH = path.join(process.cwd(), "src/mocks/mock_data.json");
 const ORIGINAL_DATA = fs.readFileSync(MOCK_PATH, "utf-8");
-
-function readMockData(): MockData {
-  return JSON.parse(fs.readFileSync(MOCK_PATH, "utf-8"));
-}
-
-function writeMockData(data: MockData): void {
-  fs.writeFileSync(MOCK_PATH, JSON.stringify(data, null, 2), "utf-8");
-}
 
 // 每个测试前恢复原始数据
 beforeEach(() => {
@@ -80,7 +72,7 @@ describe("组队逻辑 - 接受邀请与排他清理", () => {
     // 模拟接受
     const user222 = data.users.find((u) => u.builderId === "222")!;
     user222.teamId = "T-001";
-    team.memberIds.push("222");
+    team.memberIds = [...team.memberIds, "222"]; // 不可变方式
     team.pendingInvites = team.pendingInvites.filter((id) => id !== "222");
     writeMockData(data);
 
@@ -102,7 +94,7 @@ describe("组队逻辑 - 接受邀请与排他清理", () => {
     // 333 接受 T-001
     const user333 = data.users.find((u) => u.builderId === "333")!;
     user333.teamId = "T-001";
-    team001.memberIds.push("333");
+    team001.memberIds = [...team001.memberIds, "333"];
     team001.pendingInvites = team001.pendingInvites.filter((id) => id !== "333");
 
     // 排他清理

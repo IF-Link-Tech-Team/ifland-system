@@ -2,14 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { getBuilderIdFromCookie, unauthorizedResponse } from "@/lib/mock-db";
 import { getUserByBuilderId, getTeamById, updateTeam } from "@/lib/data-service";
 import type { TeamStatus } from "@/types";
+import { withMockDelay } from "@/lib/mock-delay";
 
-const MOCK_DELAY = 300;
 const VALID_STATUSES: TeamStatus[] = ["头脑风暴中", "开发中", "Demo提交"];
 
 export async function PUT(request: NextRequest) {
-  if (process.env.USE_FEISHU !== "true") {
-    await new Promise((r) => setTimeout(r, MOCK_DELAY));
-  }
+  await withMockDelay(300);
 
   const builderId = getBuilderIdFromCookie(request);
   if (!builderId) return unauthorizedResponse();
