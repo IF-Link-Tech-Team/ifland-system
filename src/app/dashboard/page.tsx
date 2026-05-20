@@ -42,6 +42,13 @@ export default function DashboardPage() {
     });
   };
 
+  // 未登录时重定向
+  useEffect(() => {
+    if (!authLoading && !authUser) {
+      router.replace("/login");
+    }
+  }, [authLoading, authUser, router]);
+
   // 首次加载
   useEffect(() => {
     if (!authUser) return;
@@ -59,17 +66,12 @@ export default function DashboardPage() {
     router.push("/login");
   };
 
-  if (authLoading || dataLoading) {
+  if (authLoading || dataLoading || !authUser) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <p className="neon-glow-cyan text-neon-cyan">加载中...</p>
       </div>
     );
-  }
-
-  if (!authUser) {
-    router.push("/login");
-    return null;
   }
 
   return (
