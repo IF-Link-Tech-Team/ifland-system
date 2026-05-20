@@ -61,7 +61,9 @@ export async function GET(request: NextRequest) {
     response.cookies.set("feishu_oauth_state", "", { path: "/", maxAge: 0 });
     return response;
   } catch (err) {
-    console.error("[feishu/callback] Error:", err);
-    return NextResponse.redirect(new URL("/login?error=oauth_failed", request.url));
+    const msg = err instanceof Error ? err.message : "unknown";
+    console.error("[feishu/callback] Error:", msg);
+    const encoded = encodeURIComponent(msg);
+    return NextResponse.redirect(new URL(`/login?error=oauth_failed&detail=${encoded}`, request.url));
   }
 }

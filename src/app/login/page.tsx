@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, Suspense } from "react";
+import { useState, useSyncExternalStore, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/contexts/auth-context";
 import { Button } from "@/components/ui/button";
@@ -40,6 +40,14 @@ export default function LoginPage() {
   );
 }
 
+function useFeishuPending(isBindMode: boolean) {
+  return useSyncExternalStore(
+    () => () => {},
+    () => (isBindMode ? readFeishuPendingInfo() : null),
+    () => null
+  );
+}
+
 function LoginPageContent() {
   const [builderId, setBuilderId] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -49,11 +57,8 @@ function LoginPageContent() {
   const searchParams = useSearchParams();
   const isBindMode = searchParams.get("bind") === "1";
   const hasOauthError = searchParams.get("error") === "oauth_failed";
-
-  const feishuPending = useMemo(
-    () => (isBindMode ? readFeishuPendingInfo() : null),
-    [isBindMode]
-  );
+  const oauthErrorDetail = searchParams.get("detail") ?? "";
+  const feishuPending = useFeishuPending(isBindMode);
 
   const handleLogin = async () => {
     const id = builderId.trim();
@@ -115,7 +120,12 @@ function LoginPageContent() {
             首次使用飞书登录，请输入你的 Builder 号完成绑定
           </p>
           {hasOauthError && (
-            <p className="text-destructive text-xs">飞书授权失败，请重试</p>
+            <div className="space-y-1">
+              <p className="text-destructive text-xs">飞书授权失败</p>
+              {oauthErrorDetail && (
+                <p className="text-destructive/70 text-xs break-all">{oauthErrorDetail}</p>
+              )}
+            </div>
           )}
         </div>
 

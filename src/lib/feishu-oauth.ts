@@ -18,27 +18,59 @@ export function getFeishuAuthUrl(redirectUri: string, state: string): string {
   return `${FEISHU_BASE_URL}/open-apis/authen/v1/authorize?${params.toString()}`;
 }
 
-/** code 换 user_access_token */
-export async function exchangeCodeForUserToken(code: string): Promise<{
-  accessToken: string;
-  refreshToken: string;
-  expires: number;
-}> {
+/** 获取 app_access_token（用于 OAuth 鉴权） */
+async function getAppAccessToken(): Promise<string> {
   const res = await fetch(
-    `${FEISHU_BASE_URL}/open-apis/authen/v1/oidc/access_token`,
+    `${FEISHU_BASE_URL}/open-apis/auth/v3/app_access_token/internal`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         app_id: APP_ID(),
         app_secret: APP_SECRET(),
+      }),
+    }
+  );
+
+  const data = (await res.json()) as {
+    code: number;
+    msg?: string;
+    app_access_token?: string;
+  };
+
+  if (data.code !== 0 || !data.app_access_token) {
+    throw new Error(`获取 app_access_token 失败: code=${data.code}, msg=${data.msg ?? "unknown"}`);
+  }
+
+  return data.app_access_token;
+}
+
+/** code 换 user_access_token */
+export async function exchangeCodeForUserToken(code: string): Promise<{
+  accessToken: string;
+  refreshToken: string;
+  expires: number;
+}> {
+  const appToken = await getAppAccessToken();
+
+  const res = await fetch(
+    `${FEISHU_BASE_URL}/open-apis/authen/v1/oidc/access_token`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${appToken}`,
+      },
+      body: JSON.stringify({
         grant_type: "authorization_code",
         code,
       }),
     }
   );
 
-  const data = (await res.json()) as {
+  const raw = await res.json();
+
+  const data = raw as {
     code: number;
     msg?: string;
     data?: {
@@ -49,7 +81,7 @@ export async function exchangeCodeForUserToken(code: string): Promise<{
   };
 
   if (data.code !== 0 || !data.data) {
-    throw new Error(`飞书 OAuth token 交换失败: code=${data.code}, msg=${data.msg ?? "unknown"}`);
+    throw new Error(`飞书 OAuth token 交换失败: code=${data.code}, msg=${data.msg ?? "unknown"}, raw=${JSON.stringify(raw)}`);
   }
 
   return {
