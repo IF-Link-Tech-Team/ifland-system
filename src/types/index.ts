@@ -12,6 +12,7 @@ export interface User {
   bio: string;
   teamId: string | null;
   abnormalMark: string | null;
+  openId: string;
 }
 
 /** 队伍状态 */

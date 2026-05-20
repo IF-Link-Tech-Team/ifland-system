@@ -6,7 +6,7 @@
  * Phase 2 (飞书): 读写飞书多维表格
  */
 
-import { readMockData, writeMockData, findUserById, findTeamById, generateNextTeamId } from "./mock-db";
+import { readMockData, writeMockData, findUserById, findUserByOpenId, findTeamById, generateNextTeamId } from "./mock-db";
 import * as feishu from "./feishu";
 import type { User, Team, SystemConfig, UserRole, TeamStatus } from "@/types";
 
@@ -127,6 +127,7 @@ function mapFeishuUser(fields: Record<string, unknown>, teamId: string | null): 
     bio: extractTextValue(fields["自我介绍"]),
     teamId,
     abnormalMark: extractTextValue(fields["异常标记"]) || null,
+    openId: extractTextValue(fields["open_id"]),
   };
 }
 
@@ -400,6 +401,59 @@ export async function getSystemConfig(): Promise<SystemConfig> {
     endTime: extractTextValue(fields["比赛结束时间"]),
     forceDisbandTrigger: extractTextValue(fields["强制解散触发"]) || null,
   };
+}
+
+// ==================== OAuth 相关 ====================
+
+/** 根据 openId 获取用户 */
+export async function getUserByOpenId(openId: string): Promise<User | null> {
+  if (!USE_FEISHU()) {
+    const data = readMockData();
+    return findUserByOpenId(data, openId);
+  }
+
+  const records = await feishu.searchRecords(TABLE_USERS(), {
+    conjunction: "and",
+    conditions: [{ field_name: "open_id", operator: "is", value: [openId] }],
+  });
+
+  if (records.length === 0) return null;
+
+  const fields = records[0].fields as Record<string, unknown>;
+  const linkIds = extractLinkRecordIds(fields["所属团队"]);
+  let teamId: string | null = null;
+  if (linkIds.length > 0) {
+    const teamRecord = await feishu.getRecord(TABLE_TEAMS(), linkIds[0]);
+    if (teamRecord) {
+      const tf = teamRecord.fields as Record<string, unknown>;
+      teamId = extractTextValue(tf["团队ID"]) || null;
+    }
+  }
+
+  return mapFeishuUser(fields, teamId);
+}
+
+/** 绑定 openId 到用户 */
+export async function bindOpenId(builderId: string, openId: string): Promise<boolean> {
+  if (!USE_FEISHU()) {
+    const data = readMockData();
+    const user = findUserById(data, builderId);
+    if (!user) return false;
+    if (user.openId) return false; // 已绑定
+    user.openId = openId;
+    writeMockData(data);
+    return true;
+  }
+
+  const record = await feishu.findRecord(TABLE_USERS(), `CurrentValue.[Builder号]="${builderId}"`);
+  if (!record) return false;
+
+  // 检查该 openId 是否已被其他用户绑定
+  const existing = await getUserByOpenId(openId);
+  if (existing && existing.builderId !== builderId) return false;
+
+  await feishu.updateRecord(TABLE_USERS(), record.recordId, { open_id: openId });
+  return true;
 }
 
 // ==================== 辅助函数 ====================

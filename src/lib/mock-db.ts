@@ -24,9 +24,14 @@ export function getBuilderIdFromCookie(
   return match ? decodeURIComponent(match[1]) : null;
 }
 
-/** 根据.builderId 获取用户，未找到返回 null */
+/** 根据 builderId 获取用户，未找到返回 null */
 export function findUserById(data: MockData, builderId: string) {
   return data.users.find((u) => u.builderId === builderId) ?? null;
+}
+
+/** 根据 openId 获取用户，未找到返回 null */
+export function findUserByOpenId(data: MockData, openId: string) {
+  return data.users.find((u) => u.openId === openId) ?? null;
 }
 
 /** 根据团队 ID 获取团队，未找到返回 null */

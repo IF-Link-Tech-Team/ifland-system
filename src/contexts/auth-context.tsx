@@ -17,6 +17,8 @@ interface AuthContextValue {
   login: (builderId: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
+  feishuLogin: () => Promise<void>;
+  feishuBind: (builderId: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -58,7 +60,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       throw new Error(json?.error ?? "登录失败");
     }
 
-    // 登录接口返回完整用户信息，直接写入 Context
     const userData: User = await res.json();
     setUser(userData);
   }, []);
@@ -68,8 +69,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   }, []);
 
+  const feishuLogin = useCallback(async () => {
+    const res = await fetch("/api/auth/feishu/url");
+    if (!res.ok) throw new Error("获取飞书授权地址失败");
+    const json = await res.json();
+    if (!json.ok) throw new Error(json.error ?? "获取飞书授权地址失败");
+    window.location.href = json.data.url;
+  }, []);
+
+  const feishuBind = useCallback(async (builderId: string) => {
+    const res = await fetch("/api/auth/feishu/bind", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ builderId }),
+    });
+
+    if (!res.ok) {
+      const json = await res.json().catch(() => null);
+      throw new Error(json?.error ?? "绑定失败");
+    }
+
+    const userData: User = await res.json();
+    setUser(userData);
+  }, []);
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, refreshUser }}>
+    <AuthContext.Provider
+      value={{ user, loading, login, logout, refreshUser, feishuLogin, feishuBind }}
+    >
       {children}
     </AuthContext.Provider>
   );
