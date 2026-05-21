@@ -16,8 +16,7 @@ test.describe("大屏轮询", () => {
     // 应显示至少一个队伍卡片
     await expect(page.locator("text=CyberPioneers")).toBeVisible();
 
-    // 倒计时区域应存在（显示"时"和"分"）
-    await expect(page.locator("text=时").first()).toBeVisible();
-    await expect(page.locator("text=分").first()).toBeVisible();
+    // 倒计时区域应存在：未结束时显示时/分，结束后显示结束态
+    await expect(page.locator("text=距离比赛结束").or(page.locator("text=比赛已结束"))).toBeVisible();
   });
 });

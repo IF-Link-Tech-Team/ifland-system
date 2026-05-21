@@ -174,6 +174,35 @@ describe("POST /api/team/invite/accept", () => {
     expect(updated.teams.find((t) => t.teamId === "T-002")!.pendingInvites).not.toContain("222");
   });
 
+  it("排他清理：超过 5 个其他队伍也全部移除 pendingInvites", async () => {
+    const data = readMockData();
+    data.teams.find((t) => t.teamId === "T-001")!.pendingInvites.push("222");
+    data.teams.find((t) => t.teamId === "T-002")!.pendingInvites.push("222");
+    for (let i = 3; i <= 9; i++) {
+      data.teams.push({
+        teamId: `T-${String(i).padStart(3, "0")}`,
+        name: `测试队伍 ${i}`,
+        slogan: "",
+        captainId: "444",
+        memberIds: [],
+        pendingInvites: ["222"],
+        status: "头脑风暴中",
+        abnormalMark: null,
+      });
+    }
+    writeMockData(data);
+
+    const res = await accept(authedRequest("222", { teamId: "T-001" }));
+    const json = await res.json();
+    expect(json.ok).toBe(true);
+
+    const updated = readMockData();
+    const leakingTeams = updated.teams.filter(
+      (team) => team.teamId !== "T-001" && team.pendingInvites.includes("222")
+    );
+    expect(leakingTeams).toHaveLength(0);
+  });
+
   it("队伍已满员时接受返回 400", async () => {
     const data = readMockData();
     const team = data.teams.find((t) => t.teamId === "T-001")!;

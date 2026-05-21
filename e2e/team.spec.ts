@@ -1,12 +1,16 @@
 import { test, expect } from "@playwright/test";
+import { resetMockData } from "./helpers";
 
 test.describe("组队流程", () => {
   test.beforeEach(async ({ page }) => {
+    resetMockData();
     await page.goto("/login");
     await page.locator('input[placeholder*="Builder"]').fill("111");
     await page.locator('button:has-text("进入系统")').click();
     await expect(page).toHaveURL(/\/dashboard/, { timeout: 10000 });
   });
+
+  test.afterEach(() => resetMockData());
 
   test("队长邀请自由人", async ({ page }) => {
     // 应显示邀请输入框（111 是 T-001 队长，未满）
@@ -24,11 +28,14 @@ test.describe("组队流程", () => {
 
 test.describe("自由人接受邀请", () => {
   test.beforeEach(async ({ page }) => {
+    resetMockData();
     await page.goto("/login");
     await page.locator('input[placeholder*="Builder"]').fill("222");
     await page.locator('button:has-text("进入系统")').click();
     await expect(page).toHaveURL(/\/dashboard/, { timeout: 10000 });
   });
+
+  test.afterEach(() => resetMockData());
 
   test("自由人看到邀请列表和建队入口", async ({ page }) => {
     // 222 是自由人，应看到 Dashboard

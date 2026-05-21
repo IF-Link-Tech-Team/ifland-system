@@ -37,16 +37,25 @@
 | 飞书 API 集成 | 需配置 .env | ✅ 已联调验证通过 (2026-05-20) |
 | 头像上传 | 手动验收 | ✅ Phase 1 本地直存 |
 | PWA 安装 | 手动验收 | ✅ Android/iOS 双端 |
+| 数据源 facade | `src/__tests__/data-service.test.ts` | ✅ 已覆盖 |
+
+## 架构说明
+
+数据访问路径为：API route → `src/lib/data-service.ts` facade → `DataSource` 接口 → `MockDataSource` / `FeishuDataSource`。
+
+`data-service.ts` 保留原有导出函数，确保 API route 和前端行为不变；mock 与飞书的字段映射、record_id 解析、系统配置读写分别下沉到 `src/lib/data-source/`。飞书字段解析集中在 `feishu-fields.ts`，避免业务 facade 再次膨胀。
 
 ## 已覆盖核心场景
 
-### 单元测试 (Vitest, 55 tests)
+### 单元测试 (Vitest, 60 tests)
 1. ✅ Mock 数据读取与结构验证
 2. ✅ 队长邀请 → pendingInvites 追加
 3. ✅ 锁位校验 (memberIds + pendingInvites >= 3)
 4. ✅ 接受邀请 → 成员加入 + pendingInvites 移除
 5. ✅ 排他清理 → 全局遍历移除其他队伍的邀请
 6. ✅ 离队申请 → 打异常标记
+7. ✅ DataSource 选择 → `USE_FEISHU` 控制 mock/feishu 实现
+8. ✅ data-service facade → 旧导出函数保持兼容数据形状
 
 ### API 集成测试 (Vitest, 覆盖 13 个路由)
 7. ✅ 登录: 有效/无效 Builder 号、Cookie 设置、退出清除
@@ -59,6 +68,7 @@
 14. ✅ 离队申请: 未入队/重复/队长拦截 403/队员成功
 15. ✅ 大屏接口: 系统状态/队伍列表/DiceBear 默认头像
 16. ✅ 强制解散触发: system/status 轮询检测并执行解散
+17. ✅ 排他清理无 5 队上限: 超过 5 个其他队伍 pendingInvites 也全部清理
 
 ### E2E 测试 (Playwright, 5 tests)
 16. ✅ 登录流程: 输入 Builder 号 → Cookie → Dashboard 渲染

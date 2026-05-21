@@ -3,6 +3,7 @@ import { defineConfig } from "@playwright/test";
 export default defineConfig({
   testDir: "./e2e",
   fullyParallel: false,
+  workers: 1,
   retries: 0,
   timeout: 30000,
   use: {
@@ -10,9 +11,9 @@ export default defineConfig({
     headless: true,
   },
   webServer: {
-    command: "npm run dev",
+    command: "env USE_FEISHU= npm run dev",
     url: "http://localhost:3000",
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: false,
     timeout: 30000,
   },
 });

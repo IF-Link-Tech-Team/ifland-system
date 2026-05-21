@@ -2,14 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 
 const PROTECTED_PATHS = ["/dashboard"];
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // 检查是否需要鉴权
-  const isProtected = PROTECTED_PATHS.some((p) => pathname.startsWith(p));
+  const isProtected = PROTECTED_PATHS.some((path) => pathname.startsWith(path));
   if (!isProtected) return NextResponse.next();
 
-  // 检查 Cookie 中是否有 auth_token
   const authToken = request.cookies.get("auth_token")?.value;
   if (!authToken) {
     const loginUrl = new URL("/login", request.url);
