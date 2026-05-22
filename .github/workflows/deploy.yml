@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: deploy-production
+  group: ifland-system-production-deploy
   cancel-in-progress: true
 
 permissions:
@@ -17,6 +17,10 @@ jobs:
   deploy:
     name: Deploy to server
     runs-on: ubuntu-latest
+    env:
+      APP_NAME: ifland-system
+      APP_PORT: "3731"
+      NODE_VERSION: "24"
 
     steps:
       - name: Checkout repository
@@ -35,7 +39,7 @@ jobs:
             -p "${{ secrets.SERVER_PORT }}" \
             -o StrictHostKeyChecking=accept-new \
             "${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}" \
-            "sudo mkdir -p '${{ secrets.DEPLOY_PATH }}' && sudo chown -R \$(id -un):\$(id -gn) '${{ secrets.DEPLOY_PATH }}'"
+            "sudo mkdir -p '${{ secrets.DEPLOY_PATH }}/current' && sudo chown -R \$(id -un):\$(id -gn) '${{ secrets.DEPLOY_PATH }}'"
 
       - name: Sync source to server
         run: |
@@ -49,7 +53,7 @@ jobs:
             --exclude "playwright-report" \
             --exclude ".env.local" \
             --exclude ".env.remote" \
-            ./ "${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:${{ secrets.DEPLOY_PATH }}/"
+            ./ "${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:${{ secrets.DEPLOY_PATH }}/current/"
 
       - name: Install, build, and restart
         run: |
@@ -58,5 +62,5 @@ jobs:
             -p "${{ secrets.SERVER_PORT }}" \
             -o StrictHostKeyChecking=accept-new \
             "${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}" \
-            "DEPLOY_PATH='${{ secrets.DEPLOY_PATH }}' bash -s" \
+            "DEPLOY_PATH='${{ secrets.DEPLOY_PATH }}/current' APP_NAME='${{ env.APP_NAME }}' APP_PORT='${{ env.APP_PORT }}' NODE_VERSION='${{ env.NODE_VERSION }}' bash -s" \
             < .github/scripts/deploy-remote.sh

@@ -183,7 +183,7 @@ npm run start
 部署流程：
 
 ```text
-checkout code -> rsync source to server -> npm ci -> npm run build -> pm2 reload/start
+checkout code -> rsync source to server -> npm ci -> npm run build -> pm2 restart
 ```
 
 服务器需要提前准备：
@@ -193,9 +193,9 @@ checkout code -> rsync source to server -> npm ci -> npm run build -> pm2 reload
 - pm2
 - rsync
 - 可被 `SERVER_USER` 写入的部署目录
-- 部署目录下的 `.env.local`
+- 部署目录 `current/` 下的 `.env.local`
 
-如果使用 `/var/www/ifland-system` 作为部署目录，workflow 会尝试通过 `sudo mkdir -p` 创建目录并将 owner 改为当前 SSH 用户。若服务器没有免密 sudo，需要先手动创建目录并授权。
+当前 workflow 使用独立 PM2 进程名 `ifland-system`，并让 Next.js 监听 `3731` 端口，避免和同服务器上的 `compass-app` 服务冲突。若使用 `/var/www/ifland-system` 作为 `DEPLOY_PATH`，实际代码会同步到 `/var/www/ifland-system/current`。workflow 会尝试通过 `sudo mkdir -p` 创建目录并将 owner 改为当前 SSH 用户；若服务器没有免密 sudo，需要先手动创建目录并授权。
 
 ## 测试与验收
 
