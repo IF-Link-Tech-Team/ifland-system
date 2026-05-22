@@ -161,6 +161,42 @@ npm run start
 | `npm run test:watch` | 以 watch 模式运行 Vitest。 |
 | `npm run test:e2e` | 运行 Playwright E2E 测试。 |
 
+## CI/CD 自动部署
+
+仓库包含 GitHub Actions workflow：`.github/workflows/deploy.yml`。
+
+触发方式：
+
+- 推送到 `main` 分支时自动部署。
+- 在 GitHub Actions 页面手动运行 `Deploy` workflow。
+
+需要在 GitHub Actions Secrets 中配置：
+
+| Secret | 说明 |
+| --- | --- |
+| `SERVER_HOST` | 服务器公网 IP 或 GitHub Actions runner 可访问的域名。 |
+| `SERVER_PORT` | SSH 端口，通常是 `22`。 |
+| `SERVER_USER` | SSH 用户，例如 `ubuntu`。 |
+| `SERVER_SSH_KEY` | 用于登录服务器的私钥。 |
+| `DEPLOY_PATH` | 服务器部署目录，例如 `/var/www/ifland-system`。 |
+
+部署流程：
+
+```text
+checkout code -> rsync source to server -> npm ci -> npm run build -> pm2 reload/start
+```
+
+服务器需要提前准备：
+
+- Node.js 20 或更高版本
+- npm
+- pm2
+- rsync
+- 可被 `SERVER_USER` 写入的部署目录
+- 部署目录下的 `.env.local`
+
+如果使用 `/var/www/ifland-system` 作为部署目录，workflow 会尝试通过 `sudo mkdir -p` 创建目录并将 owner 改为当前 SSH 用户。若服务器没有免密 sudo，需要先手动创建目录并授权。
+
 ## 测试与验收
 
 推荐提交前运行：

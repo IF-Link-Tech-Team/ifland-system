@@ -1,0 +1,62 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Deploy to server
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Prepare SSH key
+        run: |
+          mkdir -p ~/.ssh
+          install -m 600 /dev/null ~/.ssh/deploy_key
+          printf '%s\n' "${{ secrets.SERVER_SSH_KEY }}" > ~/.ssh/deploy_key
+
+      - name: Create deploy directory
+        run: |
+          ssh \
+            -i ~/.ssh/deploy_key \
+            -p "${{ secrets.SERVER_PORT }}" \
+            -o StrictHostKeyChecking=accept-new \
+            "${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}" \
+            "sudo mkdir -p '${{ secrets.DEPLOY_PATH }}' && sudo chown -R \$(id -un):\$(id -gn) '${{ secrets.DEPLOY_PATH }}'"
+
+      - name: Sync source to server
+        run: |
+          rsync -az --delete \
+            -e "ssh -i ~/.ssh/deploy_key -p ${{ secrets.SERVER_PORT }} -o StrictHostKeyChecking=accept-new" \
+            --exclude ".git" \
+            --exclude ".github" \
+            --exclude ".next" \
+            --exclude "node_modules" \
+            --exclude "test-results" \
+            --exclude "playwright-report" \
+            --exclude ".env.local" \
+            --exclude ".env.remote" \
+            ./ "${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:${{ secrets.DEPLOY_PATH }}/"
+
+      - name: Install, build, and restart
+        run: |
+          ssh \
+            -i ~/.ssh/deploy_key \
+            -p "${{ secrets.SERVER_PORT }}" \
+            -o StrictHostKeyChecking=accept-new \
+            "${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}" \
+            "DEPLOY_PATH='${{ secrets.DEPLOY_PATH }}' bash -s" \
+            < .github/scripts/deploy-remote.sh
