@@ -60,6 +60,20 @@ function LoginPageContent() {
   const oauthErrorDetail = searchParams.get("detail") ?? "";
   const feishuPending = useFeishuPending(isBindMode);
 
+  const checkConsentAndRedirect = async () => {
+    try {
+      const res = await fetch("/api/user/status");
+      const json = await res.json();
+      if (json.ok && json.data?.needsConsent) {
+        router.push("/consent");
+      } else {
+        router.push("/dashboard");
+      }
+    } catch {
+      router.push("/dashboard");
+    }
+  };
+
   const handleLogin = async () => {
     const id = builderId.trim();
     if (!id) {
@@ -71,7 +85,7 @@ function LoginPageContent() {
     try {
       await login(id);
       toast.success("登录成功");
-      router.push("/dashboard");
+      await checkConsentAndRedirect();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "登录失败");
     } finally {
@@ -90,7 +104,7 @@ function LoginPageContent() {
     try {
       await feishuBind(id);
       toast.success("绑定成功");
-      router.push("/dashboard");
+      await checkConsentAndRedirect();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "绑定失败");
     } finally {

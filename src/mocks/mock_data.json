@@ -59,7 +59,9 @@
       "name": "CyberPioneers",
       "slogan": "用代码改变世界",
       "captainId": "111",
-      "memberIds": ["111"],
+      "memberIds": [
+        "111"
+      ],
       "pendingInvites": [],
       "status": "头脑风暴中",
       "abnormalMark": null
@@ -69,12 +71,15 @@
       "name": "HardwareHeroes",
       "slogan": "从焊盘到星辰",
       "captainId": "444",
-      "memberIds": ["444"],
+      "memberIds": [
+        "444"
+      ],
       "pendingInvites": [],
       "status": "头脑风暴中",
       "abnormalMark": null
     }
   ],
+  "consentRecords": [],
   "system": {
     "marqueeNotice": "",
     "endTime": "2026-05-20T17:00:00+08:00",

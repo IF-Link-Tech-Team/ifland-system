@@ -45,6 +45,7 @@ export interface SystemConfig {
 export interface MockData {
   users: User[];
   teams: Team[];
+  consentRecords: ConsentRecord[];
   system: SystemConfig;
 }
 
@@ -91,6 +92,19 @@ export interface TeamInfo {
   memberCount: number;
   presentCount: number;
   members: TeamMemberSummary[];
+}
+
+/** 授权场景 */
+export type ConsentScene = "首次登录系统";
+
+/** 授权记录 */
+export interface ConsentRecord {
+  builderId: string;
+  scene: ConsentScene;
+  version: string;
+  agreed: boolean;
+  ua: string;
+  createdAt: string;
 }
 
 /** 角色中文映射 */

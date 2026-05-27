@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import type { MockData } from "@/types";
+import type { ConsentRecord, MockData } from "@/types";
 
 const MOCK_PATH = path.join(process.cwd(), "src/mocks/mock_data.json");
 
@@ -48,6 +48,24 @@ export function generateNextTeamId(data: MockData): string {
   });
   const max = Math.max(...nums);
   return `T-${String(max + 1).padStart(3, "0")}`;
+}
+
+/** 查找用户的授权记录（按场景） */
+export function findConsentByBuilderId(
+  data: MockData,
+  builderId: string,
+  scene: string
+): ConsentRecord | null {
+  return (
+    data.consentRecords.find(
+      (r) => r.builderId === builderId && r.scene === scene
+    ) ?? null
+  );
+}
+
+/** 新增授权记录 */
+export function addConsentRecord(data: MockData, record: ConsentRecord): void {
+  data.consentRecords.push(record);
 }
 
 /** 返回未鉴权错误响应 */

@@ -49,6 +49,19 @@ export default function DashboardPage() {
     }
   }, [authLoading, authUser, router]);
 
+  // 检查是否需跳转知情同意书（覆盖飞书回调等直接进入 /dashboard 的场景）
+  useEffect(() => {
+    if (!authUser) return;
+    fetch("/api/user/status")
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.ok && json.data?.needsConsent) {
+          router.replace("/consent");
+        }
+      })
+      .catch(() => {});
+  }, [authUser, router]);
+
   // 首次加载
   useEffect(() => {
     if (!authUser) return;
