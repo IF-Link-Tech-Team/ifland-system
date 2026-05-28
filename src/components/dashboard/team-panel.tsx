@@ -5,15 +5,15 @@ import { useState, useTransition, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import type { User, Team, TeamStatus } from "@/types";
+import type { SafeUser, Team, TeamStatus } from "@/types";
 import { ROLE_LABELS } from "@/types";
 import Image from "next/image";
 import { Pencil, Send, LogOut } from "lucide-react";
 
 interface TeamPanelProps {
-  user: User;
+  user: SafeUser;
   team: Team;
-  teamMembers: User[];
+  teamMembers: SafeUser[];
   onTeamUpdate: () => void;
   onUserUpdate: () => void;
 }

@@ -12,9 +12,9 @@ import { TeamPanel } from "@/components/dashboard/team-panel";
 import { FreelancerInvite } from "@/components/dashboard/freelancer-invite";
 import { LogOut } from "lucide-react";
 import { PWAInstallButton } from "@/components/dashboard/pwa-install";
-import type { User, Team } from "@/types";
+import type { SafeUser, Team } from "@/types";
 
-async function fetchDashboardData(): Promise<{ team: Team | null; teamMembers: User[] } | null> {
+async function fetchDashboardData(): Promise<{ team: Team | null; teamMembers: SafeUser[] } | null> {
   const res = await fetch("/api/team/my");
   if (res.ok) {
     const json = await res.json();
@@ -27,7 +27,7 @@ export default function DashboardPage() {
   const { user: authUser, loading: authLoading, logout, refreshUser } = useAuth();
   const router = useRouter();
   const [team, setTeam] = useState<Team | null>(null);
-  const [teamMembers, setTeamMembers] = useState<User[]>([]);
+  const [teamMembers, setTeamMembers] = useState<SafeUser[]>([]);
   const [dataLoading, setDataLoading] = useState(true);
   const [, startTransition] = useTransition();
 

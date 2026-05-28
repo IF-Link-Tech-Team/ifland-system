@@ -4,12 +4,13 @@ export type UserRole = "NAVIGATOR" | "WEAVER" | "LINKER" | "ARTIFICER" | "ANOMAL
 /** 在场状态 */
 export type PresenceStatus = "在场" | "离场";
 
-/** 用户信息 */
+/** 用户信息（password 仅服务端使用，前端不暴露） */
 export interface User {
   builderId: string;
   name: string;
   phone: string;
   email: string;
+  password: string;
   avatar: string;
   role: UserRole;
   bio: string;
@@ -18,6 +19,9 @@ export interface User {
   openId: string;
   presenceStatus: PresenceStatus;
 }
+
+/** 前端安全用户信息（去除 password） */
+export type SafeUser = Omit<User, "password">;
 
 /** 队伍状态 */
 export type TeamStatus = "头脑风暴中" | "开发中" | "Demo提交";

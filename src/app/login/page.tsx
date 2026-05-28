@@ -49,6 +49,8 @@ function useFeishuPending(isBindMode: boolean) {
 }
 
 function LoginPageContent() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [builderId, setBuilderId] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [feishuLoading, setFeishuLoading] = useState(false);
@@ -75,15 +77,15 @@ function LoginPageContent() {
   };
 
   const handleLogin = async () => {
-    const id = builderId.trim();
-    if (!id) {
-      toast.error("请输入 Builder 号");
+    const e = email.trim();
+    if (!e || !password) {
+      toast.error("请输入邮箱和密码");
       return;
     }
 
     setSubmitting(true);
     try {
-      await login(id);
+      await login(e, password);
       toast.success("登录成功");
       await checkConsentAndRedirect();
     } catch (err) {
@@ -193,16 +195,26 @@ function LoginPageContent() {
         <h1 className="neon-glow-cyan text-3xl font-bold tracking-wider text-neon-cyan">
           IF.Land
         </h1>
-        <p className="text-muted-foreground text-sm">输入 Builder 号进入系统</p>
+        <p className="text-muted-foreground text-sm">使用邮箱和密码登录</p>
       </div>
 
       <div className="w-full max-w-xs space-y-4">
         <Input
-          placeholder="Builder 号 (如 111)"
-          value={builderId}
-          onChange={(e) => setBuilderId(e.target.value)}
+          type="email"
+          placeholder="邮箱"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleLogin()}
-          className="border-neon-cyan/30 bg-card text-center text-lg placeholder:text-muted-foreground/50 focus:border-neon-cyan"
+          className="border-neon-cyan/30 bg-card text-center placeholder:text-muted-foreground/50 focus:border-neon-cyan"
+          disabled={submitting}
+        />
+        <Input
+          type="password"
+          placeholder="密码"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && handleLogin()}
+          className="border-neon-cyan/30 bg-card text-center placeholder:text-muted-foreground/50 focus:border-neon-cyan"
           disabled={submitting}
         />
         <Button
@@ -230,7 +242,7 @@ function LoginPageContent() {
       </div>
 
       <p className="text-muted-foreground/60 text-xs">
-        测试账号: 111 / 222 / 333 / 444
+        测试: jia@example.com / yi@example.com / 密码 hackathon2026
       </p>
     </div>
   );

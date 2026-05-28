@@ -15,13 +15,13 @@ function makeLoginRequest(body: unknown) {
 }
 
 describe("POST /api/auth/login", () => {
-  it("缺少 builderId 时返回 400", async () => {
+  it("缺少登录参数时返回 400", async () => {
     const req = makeLoginRequest({});
     const res = await POST(req);
     const json = await res.json();
     expect(res.status).toBe(400);
     expect(json.ok).toBe(false);
-    expect(json.error).toContain("Builder 号");
+    expect(json.error).toContain("邮箱");
   });
 
   it("builderId 不存在时返回 401", async () => {

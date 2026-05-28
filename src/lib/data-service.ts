@@ -12,6 +12,10 @@ export async function getUserByBuilderId(builderId: string): Promise<User | null
   return getDataSource().getUserByBuilderId(builderId);
 }
 
+export async function getUserByEmail(email: string): Promise<User | null> {
+  return getDataSource().getUserByEmail(email);
+}
+
 export async function getUserByOpenId(openId: string): Promise<User | null> {
   return getDataSource().getUserByOpenId(openId);
 }

@@ -14,6 +14,11 @@ export class MockDataSource implements DataSource {
     return findUserById(readMockData(), builderId);
   }
 
+  async getUserByEmail(email: string): Promise<User | null> {
+    const data = readMockData();
+    return data.users.find((u) => u.email === email) ?? null;
+  }
+
   async getUserByOpenId(openId: string): Promise<User | null> {
     return findUserByOpenId(readMockData(), openId);
   }

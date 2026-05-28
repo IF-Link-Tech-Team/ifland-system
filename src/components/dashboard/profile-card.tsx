@@ -1,14 +1,14 @@
 "use client";
 
 import { useRef, useTransition } from "react";
-import type { User } from "@/types";
+import type { SafeUser } from "@/types";
 import { ROLE_LABELS } from "@/types";
 import Image from "next/image";
 import { Camera } from "lucide-react";
 import { toast } from "sonner";
 
 interface ProfileCardProps {
-  user: User;
+  user: SafeUser;
   onAvatarUpdate?: () => void;
 }
 

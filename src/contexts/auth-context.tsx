@@ -9,12 +9,12 @@ import {
   useCallback,
   type ReactNode,
 } from "react";
-import type { User } from "@/types";
+import type { SafeUser } from "@/types";
 
 interface AuthContextValue {
-  user: User | null;
+  user: SafeUser | null;
   loading: boolean;
-  login: (builderId: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
   feishuLogin: () => Promise<void>;
@@ -24,7 +24,7 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<SafeUser | null>(null);
   const [loading, setLoading] = useState(true);
 
   const refreshUser = useCallback(async () => {
@@ -48,11 +48,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     refreshUser().finally(() => setLoading(false));
   }, [refreshUser]);
 
-  const login = useCallback(async (builderId: string) => {
+  const login = useCallback(async (email: string, password: string) => {
     const res = await fetch("/api/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ builderId }),
+      body: JSON.stringify({ email, password }),
     });
 
     if (!res.ok) {
@@ -60,7 +60,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       throw new Error(json?.error ?? "登录失败");
     }
 
-    const userData: User = await res.json();
+    const userData: SafeUser = await res.json();
     setUser(userData);
   }, []);
 
@@ -89,7 +89,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       throw new Error(json?.error ?? "绑定失败");
     }
 
-    const userData: User = await res.json();
+    const userData: SafeUser = await res.json();
     setUser(userData);
   }, []);
 

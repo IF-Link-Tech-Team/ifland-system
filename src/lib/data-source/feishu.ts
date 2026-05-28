@@ -57,6 +57,18 @@ export class FeishuDataSource implements DataSource {
     return mapFeishuUser(fields, teamId);
   }
 
+  async getUserByEmail(email: string): Promise<User | null> {
+    const records = await feishu.searchRecords(TABLE_USERS(), {
+      conjunction: "and",
+      conditions: [{ field_name: FIELD.email, operator: "is", value: [email] }],
+    });
+    if (records.length === 0) return null;
+
+    const fields = records[0].fields as Record<string, unknown>;
+    const teamId = await this.resolveTeamId(extractLinkRecordIds(fields[FIELD.teamRef]));
+    return mapFeishuUser(fields, teamId);
+  }
+
   async getUserByOpenId(openId: string): Promise<User | null> {
     const records = await feishu.searchRecords(TABLE_USERS(), {
       conjunction: "and",

@@ -2,6 +2,7 @@ import type { User, Team, SystemConfig } from "@/types";
 
 export interface DataSource {
   getUserByBuilderId(builderId: string): Promise<User | null>;
+  getUserByEmail(email: string): Promise<User | null>;
   getUserByOpenId(openId: string): Promise<User | null>;
   getAllUsers(): Promise<User[]>;
   updateUser(builderId: string, updates: Partial<User>): Promise<boolean>;
