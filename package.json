@@ -15,6 +15,7 @@
   "dependencies": {
     "@base-ui/react": "^1.5.0",
     "@ducanh2912/next-pwa": "^10.2.9",
+    "@volcengine/tos-sdk": "^2.9.1",
     "bcryptjs": "^3.0.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

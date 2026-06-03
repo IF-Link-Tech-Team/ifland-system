@@ -8,11 +8,20 @@ const withPWA = withPWAInit({
 });
 
 const nextConfig: NextConfig = {
+  allowedDevOrigins: ["beginning-committed-cabin-extras.trycloudflare.com"],
   images: {
     remotePatterns: [
       {
         protocol: "https",
         hostname: "api.dicebear.com",
+      },
+      {
+        protocol: "https",
+        hostname: "*.tos-cn-beijing.volces.com",
+      },
+      {
+        protocol: "https",
+        hostname: "*.volces.com",
       },
     ],
   },
