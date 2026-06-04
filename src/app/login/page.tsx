@@ -129,7 +129,7 @@ function LoginPageContent() {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-8 p-6">
         <div className="flex flex-col items-center gap-2">
-          <h1 className="neon-glow-cyan text-2xl font-bold tracking-wider text-neon-cyan">
+          <h1 className="text-2xl font-bold tracking-wider text-ifland-primary">
             绑定 Builder 号
           </h1>
           <p className="text-muted-foreground text-sm text-center">
@@ -146,7 +146,7 @@ function LoginPageContent() {
         </div>
 
         {feishuPending && (
-          <div className="flex items-center gap-3 rounded-lg border border-neon-cyan/20 bg-card/50 px-4 py-3">
+          <div className="flex items-center gap-3 rounded-lg border border-ifland-primary/20 bg-card/50 px-4 py-3">
             {feishuPending.avatarUrl && (
               // eslint-disable-next-line @next/next/no-img-element
               <img
@@ -165,13 +165,13 @@ function LoginPageContent() {
             value={builderId}
             onChange={(e) => setBuilderId(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleBind()}
-            className="border-neon-cyan/30 bg-card text-center text-lg placeholder:text-muted-foreground/50 focus:border-neon-cyan"
+            className="border-ifland-primary/30 bg-card text-center text-lg placeholder:text-muted-foreground/50 focus:border-ifland-primary"
             disabled={submitting}
           />
           <Button
             onClick={handleBind}
             disabled={submitting}
-            className="neon-border-cyan w-full border border-neon-cyan/50 bg-neon-cyan/10 text-neon-cyan hover:bg-neon-cyan/20"
+            className="w-full border border-ifland-primary/50 bg-ifland-primary/10 text-ifland-primary hover:bg-ifland-primary/20"
           >
             {submitting ? "绑定中..." : "确认绑定"}
           </Button>
@@ -192,7 +192,7 @@ function LoginPageContent() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-8 p-6">
       <div className="flex flex-col items-center gap-2">
-        <h1 className="neon-glow-cyan text-3xl font-bold tracking-wider text-neon-cyan">
+        <h1 className="text-3xl font-bold tracking-wider text-ifland-primary">
           IF.Land
         </h1>
         <p className="text-muted-foreground text-sm">使用邮箱和密码登录</p>
@@ -205,7 +205,7 @@ function LoginPageContent() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleLogin()}
-          className="border-neon-cyan/30 bg-card text-center placeholder:text-muted-foreground/50 focus:border-neon-cyan"
+          className="border-ifland-primary/30 bg-card text-center placeholder:text-muted-foreground/50 focus:border-ifland-primary"
           disabled={submitting}
         />
         <Input
@@ -214,13 +214,13 @@ function LoginPageContent() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleLogin()}
-          className="border-neon-cyan/30 bg-card text-center placeholder:text-muted-foreground/50 focus:border-neon-cyan"
+          className="border-ifland-primary/30 bg-card text-center placeholder:text-muted-foreground/50 focus:border-ifland-primary"
           disabled={submitting}
         />
         <Button
           onClick={handleLogin}
           disabled={submitting}
-          className="neon-border-cyan w-full border border-neon-cyan/50 bg-neon-cyan/10 text-neon-cyan hover:bg-neon-cyan/20"
+          className="w-full border border-ifland-primary/50 bg-ifland-primary/10 text-ifland-primary hover:bg-ifland-primary/20"
         >
           {submitting ? "登录中..." : "进入系统"}
         </Button>
@@ -235,15 +235,11 @@ function LoginPageContent() {
           onClick={handleFeishuLogin}
           disabled={feishuLoading}
           variant="outline"
-          className="w-full border-blue-500/40 bg-blue-500/5 text-blue-400 hover:bg-blue-500/15 hover:text-blue-300"
+          className="w-full border-ifland-purple/40 bg-ifland-purple/5 text-ifland-purple hover:bg-ifland-purple/15"
         >
           {feishuLoading ? "跳转中..." : "飞书登录"}
         </Button>
       </div>
-
-      <p className="text-muted-foreground/60 text-xs">
-        测试: jia@example.com / yi@example.com / 密码 hackathon2026
-      </p>
     </div>
   );
 }

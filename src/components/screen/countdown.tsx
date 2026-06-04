@@ -27,8 +27,8 @@ export function Countdown({ endTime }: CountdownProps) {
 
   if (remaining.expired) {
     return (
-      <div className="neon-glow-magenta text-center">
-        <p className="text-3xl font-bold text-neon-magenta md:text-5xl">
+      <div className="text-center">
+        <p className="text-3xl font-bold text-ifland-orange md:text-5xl">
           比赛已结束
         </p>
       </div>
@@ -47,7 +47,7 @@ export function Countdown({ endTime }: CountdownProps) {
           { value: pad(remaining.seconds), label: "秒" },
         ].map((item) => (
           <div key={item.label} className="flex flex-col items-center">
-            <span className="neon-glow-cyan rounded-lg border border-neon-cyan/30 bg-card px-3 py-2 text-3xl font-mono font-bold text-neon-cyan md:px-6 md:py-4 md:text-6xl">
+            <span className="rounded-lg border border-ifland-primary/30 bg-card px-3 py-2 text-3xl font-mono font-bold text-ifland-primary md:px-6 md:py-4 md:text-6xl">
               {item.value}
             </span>
             <span className="mt-1 text-xs text-muted-foreground">{item.label}</span>

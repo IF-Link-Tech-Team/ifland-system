@@ -1,4 +1,4 @@
-import type { Team, TeamStatus, User, UserRole } from "@/types";
+import type { Team, TeamStatus, User, UserRole, Workshop } from "@/types";
 
 export const FIELD = {
   builderId: "Builder号",
@@ -13,6 +13,7 @@ export const FIELD = {
   abnormalMark: "异常标记",
   openId: "open_id",
   presenceStatus: "在场状态",
+  consentStatus: "授权状态",
 
   teamId: "团队ID",
   teamName: "队名",
@@ -20,6 +21,7 @@ export const FIELD = {
   teamCaptain: "队长",
   teamPending: "受邀名单 (pendingInvites)",
   teamStatus: "队伍状态",
+  teamWorkshop: "所属工坊",
 
   systemNotice: "全局跑马灯通知",
   systemEndTime: "比赛结束时间",
@@ -112,6 +114,7 @@ export function mapFeishuUser(
     abnormalMark: extractTextValue(fields[FIELD.abnormalMark]) || null,
     openId: extractTextValue(fields[FIELD.openId]),
     presenceStatus: status === "离场" ? "离场" : "在场",
+    consentStatus: extractSelectValue(fields[FIELD.consentStatus]) || null,
   };
 }
 
@@ -129,5 +132,6 @@ export function mapFeishuTeam(
     pendingInvites: parsePendingInvites(fields[FIELD.teamPending]),
     status: (extractSelectValue(fields[FIELD.teamStatus]) as TeamStatus) || "头脑风暴中",
     abnormalMark: extractTextValue(fields[FIELD.abnormalMark]) || null,
+    workshop: (extractSelectValue(fields[FIELD.teamWorkshop]) as Workshop) || null,
   };
 }

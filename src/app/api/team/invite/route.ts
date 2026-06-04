@@ -65,6 +65,7 @@ export async function POST(request: NextRequest) {
         pendingInvites: [targetBuilderId],
         status: "头脑风暴中",
         abnormalMark: null,
+        workshop: null,
       };
 
       await createTeam(team);

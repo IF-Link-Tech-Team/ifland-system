@@ -5,56 +5,135 @@
       "name": "选手甲",
       "phone": "13800138001",
       "email": "jia@example.com",
-      "password": "$2b$10$GqBHlmpQ6dRfLp.RWPunsuDITXFCGDjTq7BwcJr8V15Ld1l4mufxS",
+      "password": "$2b$10$DbWL4yU0QAGyCXE.aVOkuO3uUk0ZVLwYRJ4mGsyViCbpjUidRa1.W",
       "avatar": "",
       "role": "NAVIGATOR",
       "bio": "热爱 AI 的后端选手",
       "teamId": "T-001",
       "abnormalMark": null,
       "openId": "",
-      "presenceStatus": "在场"
+      "presenceStatus": "在场",
+      "consentStatus": null
     },
     {
       "builderId": "222",
       "name": "选手乙",
       "phone": "13800138002",
       "email": "yi@example.com",
-      "password": "$2b$10$GqBHlmpQ6dRfLp.RWPunsuDITXFCGDjTq7BwcJr8V15Ld1l4mufxS",
+      "password": "$2b$10$DbWL4yU0QAGyCXE.aVOkuO3uUk0ZVLwYRJ4mGsyViCbpjUidRa1.W",
       "avatar": "",
       "role": "WEAVER",
       "bio": "喜欢写前端的设计师",
       "teamId": null,
       "abnormalMark": null,
       "openId": "",
-      "presenceStatus": "在场"
+      "presenceStatus": "在场",
+      "consentStatus": null
     },
     {
       "builderId": "333",
       "name": "选手丙",
       "phone": "13800138003",
       "email": "bing@example.com",
-      "password": "$2b$10$GqBHlmpQ6dRfLp.RWPunsuDITXFCGDjTq7BwcJr8V15Ld1l4mufxS",
+      "password": "$2b$10$DbWL4yU0QAGyCXE.aVOkuO3uUk0ZVLwYRJ4mGsyViCbpjUidRa1.W",
       "avatar": "",
       "role": "LINKER",
       "bio": "产品经理，擅长路演",
       "teamId": "T-001",
       "abnormalMark": null,
       "openId": "",
-      "presenceStatus": "离场"
+      "presenceStatus": "离场",
+      "consentStatus": null
     },
     {
       "builderId": "444",
       "name": "选手丁",
       "phone": "13800138004",
       "email": "ding@example.com",
-      "password": "$2b$10$GqBHlmpQ6dRfLp.RWPunsuDITXFCGDjTq7BwcJr8V15Ld1l4mufxS",
+      "password": "$2b$10$DbWL4yU0QAGyCXE.aVOkuO3uUk0ZVLwYRJ4mGsyViCbpjUidRa1.W",
       "avatar": "",
       "role": "ARTIFICER",
       "bio": "硬件大神，焊板子一把好手",
       "teamId": "T-002",
       "abnormalMark": null,
       "openId": "",
-      "presenceStatus": "在场"
+      "presenceStatus": "在场",
+      "consentStatus": null
+    },
+    {
+      "builderId": "555",
+      "name": "选手戊",
+      "phone": "13800138005",
+      "email": "wu@example.com",
+      "password": "$2b$10$DbWL4yU0QAGyCXE.aVOkuO3uUk0ZVLwYRJ4mGsyViCbpjUidRa1.W",
+      "avatar": "",
+      "role": "NAVIGATOR",
+      "bio": "全栈开发，擅长系统架构",
+      "teamId": "T-003",
+      "abnormalMark": null,
+      "openId": "",
+      "presenceStatus": "在场",
+      "consentStatus": null
+    },
+    {
+      "builderId": "666",
+      "name": "选手己",
+      "phone": "13800138006",
+      "email": "ji@example.com",
+      "password": "$2b$10$DbWL4yU0QAGyCXE.aVOkuO3uUk0ZVLwYRJ4mGsyViCbpjUidRa1.W",
+      "avatar": "",
+      "role": "WEAVER",
+      "bio": "UI/UX 设计师",
+      "teamId": "T-003",
+      "abnormalMark": null,
+      "openId": "",
+      "presenceStatus": "在场",
+      "consentStatus": null
+    },
+    {
+      "builderId": "777",
+      "name": "选手庚",
+      "phone": "13800138007",
+      "email": "geng@example.com",
+      "password": "$2b$10$DbWL4yU0QAGyCXE.aVOkuO3uUk0ZVLwYRJ4mGsyViCbpjUidRa1.W",
+      "avatar": "",
+      "role": "LINKER",
+      "bio": "产品策划与运营",
+      "teamId": "T-004",
+      "abnormalMark": null,
+      "openId": "",
+      "presenceStatus": "在场",
+      "consentStatus": null
+    },
+    {
+      "builderId": "888",
+      "name": "选手辛",
+      "phone": "13800138008",
+      "email": "xin@example.com",
+      "password": "$2b$10$DbWL4yU0QAGyCXE.aVOkuO3uUk0ZVLwYRJ4mGsyViCbpjUidRa1.W",
+      "avatar": "",
+      "role": "ARTIFICER",
+      "bio": "嵌入式开发工程师",
+      "teamId": "T-004",
+      "abnormalMark": null,
+      "openId": "",
+      "presenceStatus": "在场",
+      "consentStatus": null
+    },
+    {
+      "builderId": "999",
+      "name": "选手壬",
+      "phone": "13800138009",
+      "email": "ren@example.com",
+      "password": "$2b$10$DbWL4yU0QAGyCXE.aVOkuO3uUk0ZVLwYRJ4mGsyViCbpjUidRa1.W",
+      "avatar": "",
+      "role": "NAVIGATOR",
+      "bio": "算法工程师",
+      "teamId": "T-005",
+      "abnormalMark": null,
+      "openId": "",
+      "presenceStatus": "在场",
+      "consentStatus": null
     }
   ],
   "teams": [
@@ -63,25 +142,55 @@
       "name": "CyberPioneers",
       "slogan": "用代码改变世界",
       "captainId": "111",
-      "memberIds": [
-        "111",
-        "333"
-      ],
+      "memberIds": ["111", "333"],
       "pendingInvites": [],
       "status": "头脑风暴中",
-      "abnormalMark": null
+      "abnormalMark": null,
+      "workshop": null
     },
     {
       "teamId": "T-002",
       "name": "HardwareHeroes",
       "slogan": "从焊盘到星辰",
       "captainId": "444",
-      "memberIds": [
-        "444"
-      ],
+      "memberIds": ["444"],
+      "pendingInvites": [],
+      "status": "开发中",
+      "abnormalMark": null,
+      "workshop": "工坊一(313)"
+    },
+    {
+      "teamId": "T-003",
+      "name": "PixelWarriors",
+      "slogan": "像素级完美主义",
+      "captainId": "555",
+      "memberIds": ["555", "666"],
       "pendingInvites": [],
       "status": "头脑风暴中",
-      "abnormalMark": null
+      "abnormalMark": null,
+      "workshop": "工坊二(314)"
+    },
+    {
+      "teamId": "T-004",
+      "name": "DataDragons",
+      "slogan": "数据驱动一切",
+      "captainId": "777",
+      "memberIds": ["777", "888"],
+      "pendingInvites": [],
+      "status": "Demo提交",
+      "abnormalMark": null,
+      "workshop": "工坊三(309)"
+    },
+    {
+      "teamId": "T-005",
+      "name": "AIVoyagers",
+      "slogan": "探索智能边界",
+      "captainId": "999",
+      "memberIds": ["999"],
+      "pendingInvites": [],
+      "status": "开发中",
+      "abnormalMark": null,
+      "workshop": "工坊一(313)"
     }
   ],
   "consentRecords": [],

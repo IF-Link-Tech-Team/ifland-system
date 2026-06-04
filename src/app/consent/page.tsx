@@ -65,7 +65,7 @@ export default function ConsentPage() {
     <div className="flex min-h-screen flex-col bg-background">
       {/* 顶部标题 */}
       <header className="flex shrink-0 items-center justify-center border-b border-border px-4 py-6">
-        <h1 className="neon-glow-cyan text-xl font-bold tracking-wider text-neon-cyan sm:text-2xl">
+        <h1 className="text-xl font-bold tracking-wider text-ifland-primary sm:text-2xl">
           知情同意书
         </h1>
       </header>
@@ -129,7 +129,7 @@ export default function ConsentPage() {
               type="checkbox"
               checked={checked}
               onChange={(e) => setChecked(e.target.checked)}
-              className="mt-0.5 h-4 w-4 shrink-0 accent-neon-cyan"
+              className="mt-0.5 h-4 w-4 shrink-0 accent-ifland-primary"
             />
             <span className="text-sm text-muted-foreground">
               我已阅读并同意《知情同意书》及《用户服务协议》
@@ -140,7 +140,7 @@ export default function ConsentPage() {
           <Button
             onClick={handleSubmit}
             disabled={!canSubmit}
-            className="neon-border-cyan w-full border border-neon-cyan/50 bg-neon-cyan/10 py-6 text-base text-neon-cyan hover:bg-neon-cyan/20 disabled:border-border disabled:bg-muted disabled:text-muted-foreground disabled:shadow-none"
+            className="w-full border border-ifland-primary/50 bg-ifland-primary/10 py-6 text-base text-ifland-primary hover:bg-ifland-primary/20 disabled:border-border disabled:bg-muted disabled:text-muted-foreground"
           >
             {buttonLabel}
           </Button>

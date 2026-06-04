@@ -28,6 +28,7 @@ export async function GET() {
       slogan: team.slogan,
       captainId: team.captainId,
       status: team.status,
+      workshop: team.workshop,
       memberCount: team.memberIds.length,
       presentCount,
       members,

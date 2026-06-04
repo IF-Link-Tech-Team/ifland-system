@@ -188,6 +188,7 @@ describe("POST /api/team/invite/accept", () => {
         pendingInvites: ["222"],
         status: "头脑风暴中",
         abnormalMark: null,
+        workshop: null,
       });
     }
     writeMockData(data);

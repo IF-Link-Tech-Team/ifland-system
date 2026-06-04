@@ -108,13 +108,13 @@ export function InviteList({ onAccept }: InviteListProps) {
 
   return (
     <div className="space-y-3">
-      <h3 className="text-sm font-medium text-neon-magenta">
+      <h3 className="text-sm font-medium text-ifland-purple">
         收到的邀请 ({invites.length})
       </h3>
       {invites.map((invite) => (
         <div
           key={invite.teamId}
-          className="flex items-center justify-between rounded-lg border border-neon-magenta/20 bg-card p-3"
+          className="flex items-center justify-between rounded-lg border border-ifland-purple/20 bg-card p-3"
         >
           <div>
             <p className="text-sm font-medium">{invite.teamName}</p>
@@ -126,7 +126,7 @@ export function InviteList({ onAccept }: InviteListProps) {
             <Button
               size="sm"
               disabled={pending}
-              className="border border-neon-cyan/50 bg-neon-cyan/10 text-neon-cyan hover:bg-neon-cyan/20"
+              className="border border-ifland-primary/50 bg-ifland-primary/10 text-ifland-primary hover:bg-ifland-primary/20"
               onClick={() => handleAccept(invite.teamId)}
             >
               同意

@@ -18,6 +18,7 @@ export interface User {
   abnormalMark: string | null;
   openId: string;
   presenceStatus: PresenceStatus;
+  consentStatus: string | null;
 }
 
 /** 前端安全用户信息（去除 password） */
@@ -25,6 +26,9 @@ export type SafeUser = Omit<User, "password">;
 
 /** 队伍状态 */
 export type TeamStatus = "头脑风暴中" | "开发中" | "Demo提交";
+
+/** 工坊选项 */
+export type Workshop = "工坊一(313)" | "工坊二(314)" | "工坊三(309)";
 
 /** 团队信息 */
 export interface Team {
@@ -36,6 +40,7 @@ export interface Team {
   pendingInvites: string[];
   status: TeamStatus;
   abnormalMark: string | null;
+  workshop: Workshop | null;
 }
 
 /** 系统配置 */
@@ -93,6 +98,7 @@ export interface TeamInfo {
   slogan: string;
   captainId: string;
   status: TeamStatus;
+  workshop: Workshop | null;
   memberCount: number;
   presentCount: number;
   members: TeamMemberSummary[];

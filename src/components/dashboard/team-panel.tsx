@@ -5,10 +5,10 @@ import { useState, useTransition, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import type { SafeUser, Team, TeamStatus } from "@/types";
+import type { SafeUser, Team, TeamStatus, Workshop } from "@/types";
 import { ROLE_LABELS } from "@/types";
 import Image from "next/image";
-import { Pencil, Send, LogOut } from "lucide-react";
+import { Pencil, Send, LogOut, MapPin } from "lucide-react";
 
 interface TeamPanelProps {
   user: SafeUser;
@@ -19,6 +19,7 @@ interface TeamPanelProps {
 }
 
 const STATUS_OPTIONS: TeamStatus[] = ["头脑风暴中", "开发中", "Demo提交"];
+const WORKSHOP_OPTIONS: Workshop[] = ["工坊一(313)", "工坊二(314)", "工坊三(309)"];
 
 export function TeamPanel({ user, team, teamMembers, onTeamUpdate, onUserUpdate }: TeamPanelProps) {
   const isCaptain = team.captainId === user.builderId;
@@ -153,12 +154,33 @@ export function TeamPanel({ user, team, teamMembers, onTeamUpdate, onUserUpdate 
     });
   };
 
+  const handleWorkshopChange = (workshop: Workshop | null) => {
+    startTransition(async () => {
+      try {
+        const res = await fetch("/api/team/workshop", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ workshop }),
+        });
+        const json = await res.json();
+        if (json.ok) {
+          toast.success(workshop ? `已加入${workshop}` : "已离开工坊");
+          onTeamUpdate();
+        } else {
+          toast.error(json.error ?? "操作失败");
+        }
+      } catch {
+        toast.error("网络错误");
+      }
+    });
+  };
+
   const hasAbnormalMark = !!user.abnormalMark;
 
   return (
     <div className="space-y-4">
       {/* 队伍信息头 */}
-      <div className="rounded-lg border border-neon-cyan/20 bg-card p-4">
+      <div className="rounded-lg border border-ifland-primary/20 bg-card p-4">
         <div className="flex items-center gap-2">
           {editingName && isCaptain ? (
             <div className="flex flex-1 gap-2">
@@ -173,7 +195,7 @@ export function TeamPanel({ user, team, teamMembers, onTeamUpdate, onUserUpdate 
             </div>
           ) : (
             <h2
-              className="flex-1 text-lg font-semibold text-neon-cyan"
+              className="flex-1 text-lg font-semibold text-ifland-primary"
               onClick={() => isCaptain && setEditingName(true)}
             >
               {team.name || "未命名队伍"}
@@ -207,6 +229,48 @@ export function TeamPanel({ user, team, teamMembers, onTeamUpdate, onUserUpdate 
           队伍 ID: {team.teamId} · 人数: {team.memberIds.length}/3
           {team.pendingInvites.length > 0 && ` · 待处理邀请: ${team.pendingInvites.length}`}
         </p>
+
+        {/* 工坊信息 */}
+        {isCaptain && (
+          <div className="mt-3 flex items-center gap-2">
+            <MapPin className="h-3.5 w-3.5 text-ifland-primary" />
+            {team.workshop ? (
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-medium text-ifland-primary">{team.workshop}</span>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-6 px-2 text-xs text-muted-foreground hover:text-destructive"
+                  disabled={pending}
+                  onClick={() => handleWorkshopChange(null)}
+                >
+                  离开工坊
+                </Button>
+              </div>
+            ) : (
+              <div className="flex gap-1.5">
+                {WORKSHOP_OPTIONS.map((w) => (
+                  <Button
+                    key={w}
+                    size="sm"
+                    variant="outline"
+                    className="h-6 border-ifland-primary/30 px-2 text-xs text-ifland-primary hover:border-ifland-primary hover:bg-ifland-primary/10"
+                    disabled={pending}
+                    onClick={() => handleWorkshopChange(w)}
+                  >
+                    {w}
+                  </Button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+        {!isCaptain && team.workshop && (
+          <div className="mt-3 flex items-center gap-2">
+            <MapPin className="h-3.5 w-3.5 text-ifland-primary" />
+            <span className="text-xs font-medium text-ifland-primary">{team.workshop}</span>
+          </div>
+        )}
       </div>
 
       {/* 队员列表 */}
@@ -216,7 +280,7 @@ export function TeamPanel({ user, team, teamMembers, onTeamUpdate, onUserUpdate 
             key={member.builderId}
             className="flex items-center gap-3 rounded-lg border border-border bg-card p-3"
           >
-            <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full border border-neon-cyan/20">
+            <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full border border-ifland-primary/30">
               <Image
                 src={member.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${member.builderId}`}
                 alt={member.name}
@@ -229,7 +293,7 @@ export function TeamPanel({ user, team, teamMembers, onTeamUpdate, onUserUpdate 
               <p className="text-sm font-medium">
                 {member.name}
                 {member.builderId === team.captainId && (
-                  <span className="ml-2 text-xs text-neon-magenta">队长</span>
+                  <span className="ml-2 text-xs text-ifland-orange">队长</span>
                 )}
               </p>
               <p className="text-muted-foreground text-xs">
@@ -252,7 +316,7 @@ export function TeamPanel({ user, team, teamMembers, onTeamUpdate, onUserUpdate 
                 variant={team.status === s ? "default" : "outline"}
                 className={
                   team.status === s
-                    ? "neon-border-cyan border border-neon-cyan/50 bg-neon-cyan/10 text-neon-cyan"
+                    ? "border border-ifland-primary/50 bg-ifland-primary/10 text-ifland-primary"
                     : "text-muted-foreground"
                 }
                 disabled={pending}
@@ -272,12 +336,12 @@ export function TeamPanel({ user, team, teamMembers, onTeamUpdate, onUserUpdate 
                 onChange={(e) => setInviteId(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleInvite()}
                 disabled={pending}
-                className="border-neon-cyan/30 bg-card placeholder:text-muted-foreground/50 focus:border-neon-cyan"
+                className="border-ifland-primary/30 bg-card placeholder:text-muted-foreground/50 focus:border-ifland-primary"
               />
               <Button
                 onClick={handleInvite}
                 disabled={pending}
-                className="neon-border-cyan border border-neon-cyan/50 bg-neon-cyan/10 text-neon-cyan hover:bg-neon-cyan/20"
+                className="border border-ifland-primary/50 bg-ifland-primary/10 text-ifland-primary hover:bg-ifland-primary/20"
               >
                 <Send className="h-4 w-4" />
               </Button>

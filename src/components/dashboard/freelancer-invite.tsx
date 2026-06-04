@@ -42,8 +42,8 @@ export function FreelancerInvite({ onTeamCreated }: FreelancerInviteProps) {
   };
 
   return (
-    <div className="rounded-lg border border-neon-cyan/20 bg-card p-4">
-      <h3 className="mb-3 text-sm font-medium text-neon-cyan">发起组队</h3>
+    <div className="rounded-lg border border-ifland-primary/20 bg-card p-4">
+      <h3 className="mb-3 text-sm font-medium text-ifland-primary">发起组队</h3>
       <p className="mb-3 text-muted-foreground text-xs">
         输入对方的 Builder 号发起邀请，系统将自动创建新队伍并将你设为队长
       </p>
@@ -54,12 +54,12 @@ export function FreelancerInvite({ onTeamCreated }: FreelancerInviteProps) {
           onChange={(e) => setTargetId(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleInvite()}
           disabled={pending}
-          className="border-neon-cyan/30 bg-card placeholder:text-muted-foreground/50 focus:border-neon-cyan"
+          className="border-ifland-primary/30 bg-card placeholder:text-muted-foreground/50 focus:border-ifland-primary"
         />
         <Button
           onClick={handleInvite}
           disabled={pending}
-          className="neon-border-cyan border border-neon-cyan/50 bg-neon-cyan/10 text-neon-cyan hover:bg-neon-cyan/20"
+          className="border border-ifland-primary/50 bg-ifland-primary/10 text-ifland-primary hover:bg-ifland-primary/20"
         >
           <Send className="h-4 w-4" />
         </Button>

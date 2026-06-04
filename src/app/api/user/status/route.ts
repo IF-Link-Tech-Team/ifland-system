@@ -5,6 +5,7 @@ import {
   readMockData,
   unauthorizedResponse,
 } from "@/lib/mock-db";
+import { getUserByBuilderId } from "@/lib/data-service";
 import { searchRecords } from "@/lib/feishu";
 import { withMockDelay } from "@/lib/mock-delay";
 
@@ -32,6 +33,15 @@ export async function GET(request: NextRequest) {
   if (!builderId) return unauthorizedResponse();
 
   if (feishuConsentEnabled()) {
+    // 优先从用户表的授权状态字段判断
+    const user = await getUserByBuilderId(builderId);
+    if (user?.consentStatus === "已授权") {
+      return NextResponse.json({
+        ok: true,
+        data: { needsConsent: false },
+      });
+    }
+    // 兜底：查授权记录表
     const hasConsented = await checkFeishuConsent(builderId);
     return NextResponse.json({
       ok: true,

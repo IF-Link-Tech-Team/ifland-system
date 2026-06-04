@@ -46,46 +46,53 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
-  /* 赛博朋克霓虹色 */
-  --color-neon-cyan: #00f0ff;
-  --color-neon-magenta: #ff00e5;
-  --color-neon-green: #39ff14;
-  --color-neon-yellow: #ffe600;
+  /* IF.Land 机能风色板 */
+  --color-ifland-primary: var(--ifland-primary);
+  --color-ifland-dark: var(--ifland-dark);
+  --color-ifland-orange: var(--ifland-orange);
+  --color-ifland-purple: var(--ifland-purple);
 }
 
 :root {
-  --background: oklch(0.08 0.02 270);
-  --foreground: oklch(0.93 0.02 180);
-  --card: oklch(0.13 0.03 270);
-  --card-foreground: oklch(0.93 0.02 180);
-  --popover: oklch(0.13 0.03 270);
-  --popover-foreground: oklch(0.93 0.02 180);
-  --primary: oklch(0.75 0.18 195);
-  --primary-foreground: oklch(0.08 0.02 270);
-  --secondary: oklch(0.18 0.04 270);
-  --secondary-foreground: oklch(0.85 0.02 180);
-  --muted: oklch(0.18 0.03 270);
-  --muted-foreground: oklch(0.60 0.02 180);
-  --accent: oklch(0.70 0.25 330);
-  --accent-foreground: oklch(0.93 0.02 180);
-  --destructive: oklch(0.65 0.25 25);
-  --border: oklch(0.30 0.06 270);
-  --input: oklch(0.20 0.04 270);
-  --ring: oklch(0.75 0.18 195);
-  --chart-1: oklch(0.75 0.18 195);
-  --chart-2: oklch(0.70 0.25 330);
-  --chart-3: oklch(0.80 0.15 140);
-  --chart-4: oklch(0.75 0.18 60);
-  --chart-5: oklch(0.65 0.25 25);
+  /* 基础暗色背景 */
+  --background: #242021;
+  --foreground: #f0f0f0;
+  /* IF.Land 机能风色板 */
+  --ifland-primary: #B1FA63;
+  --ifland-dark: #242021;
+  --ifland-orange: #FE7733;
+  --ifland-purple: #B2A1FF;
+  /* Shadcn 语义色 */
+  --card: #2a2627;
+  --card-foreground: #f0f0f0;
+  --popover: #2a2627;
+  --popover-foreground: #f0f0f0;
+  --primary: #B1FA63;
+  --primary-foreground: #242021;
+  --secondary: #333030;
+  --secondary-foreground: #f0f0f0;
+  --muted: #333030;
+  --muted-foreground: #9a9596;
+  --accent: #FE7733;
+  --accent-foreground: #ffffff;
+  --destructive: #ef4444;
+  --border: #3d3939;
+  --input: #333030;
+  --ring: #B1FA63;
+  --chart-1: #B1FA63;
+  --chart-2: #FE7733;
+  --chart-3: #B2A1FF;
+  --chart-4: #B1FA63;
+  --chart-5: #ef4444;
   --radius: 0.625rem;
-  --sidebar: oklch(0.10 0.03 270);
-  --sidebar-foreground: oklch(0.93 0.02 180);
-  --sidebar-primary: oklch(0.75 0.18 195);
-  --sidebar-primary-foreground: oklch(0.08 0.02 270);
-  --sidebar-accent: oklch(0.18 0.04 270);
-  --sidebar-accent-foreground: oklch(0.93 0.02 180);
-  --sidebar-border: oklch(0.30 0.06 270);
-  --sidebar-ring: oklch(0.75 0.18 195);
+  --sidebar: #1e1b1c;
+  --sidebar-foreground: #f0f0f0;
+  --sidebar-primary: #B1FA63;
+  --sidebar-primary-foreground: #242021;
+  --sidebar-accent: #333030;
+  --sidebar-accent-foreground: #f0f0f0;
+  --sidebar-border: #3d3939;
+  --sidebar-ring: #B1FA63;
 }
 
 @layer base {
@@ -100,19 +107,15 @@
   }
 }
 
-/* 赛博朋克霓虹发光效果 */
-.neon-glow-cyan {
-  text-shadow: 0 0 7px #00f0ff, 0 0 10px #00f0ff, 0 0 21px #00f0ff;
+/* TODO: 大屏特殊字体加载 (设计师提供字体文件后，取消注释并修改文件名)
+@font-face {
+  font-family: 'ScreenCountdownFont';
+  src: url('/fonts/your-font-file.woff2') format('woff2');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
 }
-.neon-glow-magenta {
-  text-shadow: 0 0 7px #ff00e5, 0 0 10px #ff00e5, 0 0 21px #ff00e5;
-}
-.neon-border-cyan {
-  box-shadow: 0 0 5px #00f0ff, inset 0 0 5px rgba(0, 240, 255, 0.1);
-}
-.neon-border-magenta {
-  box-shadow: 0 0 5px #ff00e5, inset 0 0 5px rgba(255, 0, 229, 0.1);
-}
+*/
 
 /* 跑马灯动画 */
 @keyframes marquee {

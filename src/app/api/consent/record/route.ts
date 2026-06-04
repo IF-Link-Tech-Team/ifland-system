@@ -8,6 +8,7 @@ import {
 } from "@/lib/mock-db";
 import { createRecord } from "@/lib/feishu";
 import { withMockDelay } from "@/lib/mock-delay";
+import { updateUser } from "@/lib/data-service";
 
 const CONSENT_TABLE = () => process.env.FEISHU_TABLE_ID_CONSENT ?? "";
 
@@ -74,6 +75,9 @@ export async function POST(request: NextRequest) {
           { status: 500 }
         );
       }
+
+      // 同步更新用户表的授权状态字段
+      await updateUser(builderId, { consentStatus: "已授权" });
 
       return NextResponse.json({ ok: true, data: { recorded: true } });
     }

@@ -59,9 +59,9 @@ export function ProfileCard({ user, onAvatarUpdate }: ProfileCardProps) {
   };
 
   return (
-    <div className="flex items-start gap-4 rounded-lg border border-neon-cyan/20 bg-card p-4">
+    <div className="flex items-start gap-4 rounded-lg border border-ifland-primary/20 bg-card p-4">
       <div
-        className="group relative h-16 w-16 shrink-0 cursor-pointer overflow-hidden rounded-full border border-neon-cyan/30"
+        className="group relative h-16 w-16 shrink-0 cursor-pointer overflow-hidden rounded-full border-2 border-ifland-primary/40"
         onClick={handleAvatarClick}
       >
         <Image
@@ -72,7 +72,7 @@ export function ProfileCard({ user, onAvatarUpdate }: ProfileCardProps) {
           unoptimized
         />
         <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 transition-opacity group-hover:opacity-100">
-          <Camera className="h-5 w-5 text-white" />
+          <Camera className="h-5 w-5 text-ifland-primary" />
         </div>
         <input
           ref={fileInputRef}
@@ -84,11 +84,11 @@ export function ProfileCard({ user, onAvatarUpdate }: ProfileCardProps) {
         />
       </div>
       <div className="min-w-0 flex-1 space-y-1">
-        <h2 className="truncate text-lg font-semibold">{user.name}</h2>
+        <h2 className="truncate text-lg font-semibold text-ifland-primary">{user.name}</h2>
         <p className="text-muted-foreground text-sm">
           Builder #{user.builderId}
         </p>
-        <span className="inline-block rounded border border-neon-magenta/40 bg-neon-magenta/10 px-2 py-0.5 text-xs text-neon-magenta">
+        <span className="inline-block rounded border border-ifland-purple/40 bg-ifland-purple/10 px-2 py-0.5 text-xs text-ifland-purple">
           {ROLE_LABELS[user.role]}
         </span>
         {user.phone && (

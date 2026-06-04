@@ -28,9 +28,9 @@ export function RedBanner() {
   if (!notice) return null;
 
   return (
-    <div className="overflow-hidden bg-destructive/90 px-4 py-2">
-      <div className="animate-marquee whitespace-nowrap text-sm font-medium text-white">
-        🔴 {notice}
+    <div className="overflow-hidden bg-ifland-orange px-4 py-2">
+      <div className="animate-marquee whitespace-nowrap text-sm font-bold text-white">
+        {notice}
       </div>
     </div>
   );

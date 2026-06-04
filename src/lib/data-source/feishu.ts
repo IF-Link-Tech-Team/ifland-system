@@ -129,6 +129,9 @@ export class FeishuDataSource implements DataSource {
     if (updates.presenceStatus !== undefined) {
       fields[FIELD.presenceStatus] = updates.presenceStatus;
     }
+    if (updates.consentStatus !== undefined) {
+      fields[FIELD.consentStatus] = updates.consentStatus;
+    }
 
     await feishu.updateRecord(TABLE_USERS(), record.recordId, fields);
     return true;
@@ -222,6 +225,7 @@ export class FeishuDataSource implements DataSource {
       [FIELD.teamCaptain]: makeLinkValue(captainRecordId),
       [FIELD.teamPending]: team.pendingInvites.length > 0 ? team.pendingInvites.join(",") : "",
       [FIELD.teamStatus]: team.status,
+      [FIELD.teamWorkshop]: team.workshop || "",
     };
 
     const result = await feishu.createRecord(TABLE_TEAMS(), fields);
@@ -243,6 +247,7 @@ export class FeishuDataSource implements DataSource {
         updates.pendingInvites.length > 0 ? updates.pendingInvites.join(",") : "";
     }
     if (updates.status !== undefined) fields[FIELD.teamStatus] = updates.status;
+    if (updates.workshop !== undefined) fields[FIELD.teamWorkshop] = updates.workshop || "";
     if (updates.captainId !== undefined) {
       const captainRecordId = await this.findUserRecordId(updates.captainId);
       if (captainRecordId) fields[FIELD.teamCaptain] = makeLinkValue(captainRecordId);

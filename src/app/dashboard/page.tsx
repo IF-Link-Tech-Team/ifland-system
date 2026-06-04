@@ -49,7 +49,7 @@ export default function DashboardPage() {
     }
   }, [authLoading, authUser, router]);
 
-  // 检查是否需跳转知情同意书（覆盖飞书回调等直接进入 /dashboard 的场景）
+  // 检查是否需跳转知情同意书
   useEffect(() => {
     if (!authUser) return;
     fetch("/api/user/status")
@@ -82,7 +82,7 @@ export default function DashboardPage() {
   if (authLoading || dataLoading || !authUser) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <p className="neon-glow-cyan text-neon-cyan">加载中...</p>
+        <p className="text-ifland-primary">加载中...</p>
       </div>
     );
   }
@@ -94,7 +94,7 @@ export default function DashboardPage() {
       <div className="mx-auto max-w-md p-4 md:p-8">
         {/* 顶部导航 */}
         <div className="mb-6 flex items-center justify-between">
-          <h1 className="neon-glow-cyan text-xl font-bold text-neon-cyan">
+          <h1 className="text-xl font-bold text-ifland-primary">
             IF.Land
           </h1>
           <div className="flex items-center gap-2">

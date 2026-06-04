@@ -1,52 +1,32 @@
-import { TosClient } from "@volcengine/tos-sdk";
+import fs from "fs";
 import path from "path";
 
-// TOS 客户端单例
-const tosClient =
-  process.env.TOS_AK && process.env.TOS_SK
-    ? new TosClient({
-        accessKeyId: process.env.TOS_AK,
-        accessKeySecret: process.env.TOS_SK,
-        region: process.env.TOS_REGION || "cn-beijing",
-        endpoint: `tos-${process.env.TOS_REGION || "cn-beijing"}.volces.com`,
-      })
-    : null;
-
-const BUCKET = process.env.TOS_BUCKET || "";
+const UPLOAD_DIR = path.join(process.cwd(), "public/uploads");
 
 /**
- * 头像上传函数
- * - TOS 已配置时：上传到火山引擎 TOS，返回公开 CDN URL
- * - TOS 未配置时：降级到本地 /public/uploads 存储
+ * 头像上传函数 (Phase 1: 本地直存)
+ * Phase 2 切换为 TOS 时仅需修改此函数内部实现
+ *
+ * @param buffer - 图片二进制数据
+ * @param originalName - 原始文件名
+ * @returns 图片的公开访问 URL
  */
 export async function uploadAvatar(
   buffer: Buffer,
   originalName: string
 ): Promise<string> {
+  // Phase 1: 保存到本地 /public/uploads
   const ext = path.extname(originalName) || ".png";
-  const key = `avatars/avatar_${Date.now()}${ext}`;
+  const filename = `avatar_${Date.now()}${ext}`;
+  const filepath = path.join(UPLOAD_DIR, filename);
 
-  // TOS 云存储
-  if (tosClient && BUCKET) {
-    await tosClient.putObject({
-      bucket: BUCKET,
-      key,
-      body: buffer,
-      contentType: `image/${ext.replace(".", "")}`,
-    });
-
-    // 返回 TOS 公开访问 URL（公共读桶可直接访问）
-    const region = process.env.TOS_REGION || "cn-beijing";
-    return `https://${BUCKET}.tos-${region}.volces.com/${key}`;
-  }
-
-  // 降级：本地直存 (Phase 1)
-  const fs = await import("fs");
-  const UPLOAD_DIR = path.join(process.cwd(), "public/uploads");
+  // 确保上传目录存在
   if (!fs.existsSync(UPLOAD_DIR)) {
     fs.mkdirSync(UPLOAD_DIR, { recursive: true });
   }
-  const filename = `avatar_${Date.now()}${ext}`;
-  fs.writeFileSync(path.join(UPLOAD_DIR, filename), buffer);
+
+  fs.writeFileSync(filepath, buffer);
+
+  // 返回相对于 localhost 的静态资源 URL
   return `/uploads/${filename}`;
 }

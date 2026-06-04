@@ -13,7 +13,6 @@ export function PWAInstallButton() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [showIOSGuide, setShowIOSGuide] = useState(false);
 
-  // iOS 检测（不依赖 effect，直接计算）
   const isIOS = useMemo(() => {
     if (typeof navigator === "undefined") return false;
     const ua = navigator.userAgent;
@@ -21,12 +20,10 @@ export function PWAInstallButton() {
   }, []);
 
   useEffect(() => {
-    // 监听 beforeinstallprompt (Android/Chrome/鸿蒙)
     const handler = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
     };
-
     window.addEventListener("beforeinstallprompt", handler);
     return () => window.removeEventListener("beforeinstallprompt", handler);
   }, []);
@@ -36,7 +33,6 @@ export function PWAInstallButton() {
       setShowIOSGuide(true);
       return;
     }
-
     if (deferredPrompt) {
       await deferredPrompt.prompt();
       const result = await deferredPrompt.userChoice;
@@ -46,7 +42,6 @@ export function PWAInstallButton() {
     }
   };
 
-  // 不支持安装且不是 iOS 时隐藏
   if (!deferredPrompt && !isIOS) return null;
 
   return (
@@ -54,7 +49,7 @@ export function PWAInstallButton() {
       <Button
         variant="outline"
         size="sm"
-        className="border-neon-green/50 text-neon-green hover:bg-neon-green/10"
+        className="border-ifland-primary/50 text-ifland-primary hover:bg-ifland-primary/10"
         onClick={handleInstall}
       >
         <Download className="mr-1 h-4 w-4" />
@@ -68,17 +63,17 @@ export function PWAInstallButton() {
           onClick={() => setShowIOSGuide(false)}
         >
           <div
-            className="w-full max-w-sm rounded-t-xl border border-neon-cyan/20 bg-card p-6"
+            className="w-full max-w-sm rounded-t-xl border border-ifland-primary/20 bg-card p-6"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="mb-4 flex items-center justify-between">
-              <h3 className="font-semibold text-neon-cyan">安装到主屏幕</h3>
+              <h3 className="font-semibold text-ifland-primary">安装到主屏幕</h3>
               <button onClick={() => setShowIOSGuide(false)}>
                 <X className="h-5 w-5 text-muted-foreground" />
               </button>
             </div>
             <div className="space-y-3 text-sm">
-              <p>1. 点击 Safari 底部的 <strong>分享按钮</strong> 📤</p>
+              <p>1. 点击 Safari 底部的 <strong>分享按钮</strong></p>
               <p>2. 在弹出的菜单中选择 <strong>&ldquo;添加到主屏幕&rdquo;</strong></p>
               <p>3. 点击右上角的 <strong>&ldquo;添加&rdquo;</strong></p>
             </div>
