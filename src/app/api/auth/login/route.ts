@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getUserByBuilderId, getUserByEmail } from "@/lib/data-service";
-import { comparePassword } from "@/lib/crypto";
 import { stripPassword } from "@/lib/crypto";
 import { withMockDelay } from "@/lib/mock-delay";
 
@@ -67,7 +66,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const valid = await comparePassword(password, user.password);
+    const valid = password === user.password;
 
     if (!valid) {
       return NextResponse.json(

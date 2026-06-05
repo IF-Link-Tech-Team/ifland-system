@@ -187,6 +187,9 @@ export class FeishuDataSource implements DataSource {
     if (updates.consentStatus !== undefined) {
       fields[FIELD.consentStatus] = updates.consentStatus;
     }
+    if (updates.password !== undefined) {
+      fields[FIELD.passwordHash] = updates.password;
+    }
 
     await feishu.updateRecord(TABLE_USERS(), record.recordId, fields);
     feishu.clearDataCache();
