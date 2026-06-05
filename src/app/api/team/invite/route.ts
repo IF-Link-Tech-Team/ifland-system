@@ -9,6 +9,7 @@ import {
   createTeam,
 } from "@/lib/data-service";
 import type { Team } from "@/types";
+import { MAX_TEAM_SIZE } from "@/types";
 import { withMockDelay } from "@/lib/mock-delay";
 
 export async function POST(request: NextRequest) {
@@ -87,7 +88,7 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      if (existingTeam.memberIds.length + existingTeam.pendingInvites.length >= 3) {
+      if (existingTeam.memberIds.length + existingTeam.pendingInvites.length >= MAX_TEAM_SIZE) {
         return NextResponse.json(
           { ok: false, error: "队伍名额已满（含待处理邀请）" },
           { status: 400 }

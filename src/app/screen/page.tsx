@@ -218,7 +218,7 @@ function TeamSeatCard({ team }: { team: TeamInfo }) {
           </span>
         )}
         <div className="ml-auto flex shrink-0 flex-row -space-x-2">
-          {team.members.slice(0, 3).map((member) => (
+          {team.members.slice(0, 4).map((member) => (
             <div key={member.builderId} className={`relative h-7 w-7 overflow-hidden rounded-full border-2 border-ifland-dark bg-white ${isAway(member) ? "opacity-40 grayscale" : ""}`}>
               <Image
                 src={member.avatar}

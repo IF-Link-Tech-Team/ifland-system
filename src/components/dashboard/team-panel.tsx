@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import type { SafeUser, Team, TeamStatus, Workshop } from "@/types";
-import { ROLE_LABELS } from "@/types";
+import { ROLE_LABELS, MAX_TEAM_SIZE } from "@/types";
 import Image from "next/image";
 import { Pencil, Send, LogOut, MapPin } from "lucide-react";
 
@@ -23,7 +23,7 @@ const WORKSHOP_OPTIONS: Workshop[] = ["工坊一(313)", "工坊二(314)", "工�
 
 export function TeamPanel({ user, team, teamMembers, onTeamUpdate, onUserUpdate }: TeamPanelProps) {
   const isCaptain = team.captainId === user.builderId;
-  const canInvite = isCaptain && team.memberIds.length + team.pendingInvites.length < 3;
+  const canInvite = isCaptain && team.memberIds.length + team.pendingInvites.length < MAX_TEAM_SIZE;
   const [inviteId, setInviteId] = useState("");
   const [pending, startTransition] = useTransition();
 

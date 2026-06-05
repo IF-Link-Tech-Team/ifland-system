@@ -7,6 +7,7 @@ import {
   updateTeam,
   removePendingInviteFromAllTeamsExcept,
 } from "@/lib/data-service";
+import { MAX_TEAM_SIZE } from "@/types";
 import { withMockDelay } from "@/lib/mock-delay";
 
 export async function POST(request: NextRequest) {
@@ -49,7 +50,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (team.memberIds.length >= 3) {
+    if (team.memberIds.length >= MAX_TEAM_SIZE) {
       return NextResponse.json(
         { ok: false, error: "队伍已满员" },
         { status: 400 }

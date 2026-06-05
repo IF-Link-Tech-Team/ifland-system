@@ -38,17 +38,17 @@ describe("组队逻辑 - 邀请流程", () => {
     expect(updatedTeam.pendingInvites).toContain("222");
   });
 
-  it("锁位校验: memberIds + pendingInvites >= 3 时禁止邀请", () => {
+  it("锁位校验: memberIds + pendingInvites >= MAX_TEAM_SIZE 时禁止邀请", () => {
     const data = readMockData();
     const team = data.teams.find((t) => t.teamId === "T-001")!;
 
-    // 当前 1 人 + 2 个 pending = 3，达到上限
-    team.pendingInvites = ["222", "333"];
+    // 当前 1 人 + 3 个 pending = 4，达到上限
+    team.pendingInvites = ["222", "333", "444"];
     writeMockData(data);
 
     const updated = readMockData();
     const updatedTeam = updated.teams.find((t) => t.teamId === "T-001")!;
-    const isFull = updatedTeam.memberIds.length + updatedTeam.pendingInvites.length >= 3;
+    const isFull = updatedTeam.memberIds.length + updatedTeam.pendingInvites.length >= 4;
     expect(isFull).toBe(true);
   });
 });

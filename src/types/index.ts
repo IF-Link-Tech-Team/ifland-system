@@ -136,6 +136,9 @@ export const ROLE_LABELS: Record<UserRole, string> = {
   ANOMALY: "未选择",
 };
 
+/** 队伍人数上限 */
+export const MAX_TEAM_SIZE = 4;
+
 /** 中文 → 英文角色反查（飞书读取时使用） */
 export const ROLE_FROM_CN: Record<string, UserRole> = Object.fromEntries(
   Object.entries(ROLE_LABELS).map(([en, cn]) => [cn, en as UserRole])

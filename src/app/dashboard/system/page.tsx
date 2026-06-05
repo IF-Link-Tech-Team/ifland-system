@@ -203,7 +203,7 @@ function TeamCard({ team }: { team: TeamInfo }) {
 
       <div className="flex items-center">
         <div className="flex -space-x-2">
-          {team.members.slice(0, 3).map((member) => (
+          {team.members.slice(0, 4).map((member) => (
             <div
               key={member.builderId}
               className={`relative h-8 w-8 overflow-hidden rounded-full ring-2 ring-ifland-primary bg-white ${
