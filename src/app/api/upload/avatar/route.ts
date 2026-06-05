@@ -41,9 +41,11 @@ export async function POST(request: NextRequest) {
       ok: true,
       data: { avatar: avatarUrl },
     });
-  } catch {
+  } catch (err) {
+    console.error("[upload/avatar] 上传失败:", err);
+    const message = err instanceof Error ? err.message : "上传失败";
     return NextResponse.json(
-      { ok: false, error: "上传失败" },
+      { ok: false, error: message },
       { status: 500 }
     );
   }
