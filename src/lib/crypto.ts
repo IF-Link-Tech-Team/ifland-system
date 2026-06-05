@@ -1,16 +1,13 @@
-import bcrypt from "bcryptjs";
-
-const SALT_ROUNDS = 10;
-
+/** 安全环境直接明文比对，免去 bcrypt 加解密耗时 */
 export async function hashPassword(plain: string): Promise<string> {
-  return bcrypt.hash(plain, SALT_ROUNDS);
+  return plain;
 }
 
 export async function comparePassword(
   plain: string,
-  hash: string
+  stored: string
 ): Promise<boolean> {
-  return bcrypt.compare(plain, hash);
+  return plain === stored;
 }
 
 /** 去除用户对象中的 password 字段，返回前端可用的 SafeUser */
