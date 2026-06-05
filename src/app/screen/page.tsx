@@ -49,6 +49,31 @@ function minutesUntil(hour: number, minute = 0) {
   return Math.max(0, Math.round((target.getTime() - now.getTime()) / 60000));
 }
 
+/** 根据当前系统时间计算太阳节点：19:00–次日5:30 显示"距离日出"倒计时到5:30；其他时间显示"距离日落"倒计时到19:00 */
+function calcSunNode() {
+  const now = new Date();
+  const hour = now.getHours();
+  const minute = now.getMinutes();
+  const currentMinutes = hour * 60 + minute;
+  const sunsetBoundary = 19 * 60; // 19:00
+  const sunriseBoundary = 5 * 60 + 30; // 5:30
+
+  // 19:00 到次日 5:30 之间 → 距离日出
+  if (currentMinutes >= sunsetBoundary || currentMinutes < sunriseBoundary) {
+    return {
+      title: "距离日出",
+      label: "日出: 05:30",
+      minutes: minutesUntil(5, 30),
+    };
+  }
+  // 5:30 到 19:00 → 距离日落
+  return {
+    title: "距离日落",
+    label: "日落: 19:00",
+    minutes: minutesUntil(19, 0),
+  };
+}
+
 function formatDuration(totalMinutes: number) {
   const hours = Math.floor(totalMinutes / 60);
   const minutes = totalMinutes % 60;
@@ -258,10 +283,10 @@ function BrandScreen({ status, teams }: { status: SystemStatusResponse | null; t
   const workshops = useMemo(() => splitWorkshops(teams), [teams]);
   const present = teams.reduce((sum, team) => sum + team.presentCount, 0);
   const total = teams.reduce((sum, team) => sum + team.memberCount, 0);
-  const sunsetMinutes = minutesUntil(19, 0);
   const nextNodeMinutes = remaining.expired
     ? 0
     : Math.min(remaining.days * 1440 + remaining.hours * 60 + remaining.minutes, 610);
+  const sunNode = calcSunNode();
 
   return (
     <main className="min-h-[100dvh] overflow-hidden bg-ifland-primary text-ifland-dark">
@@ -292,7 +317,7 @@ function BrandScreen({ status, teams }: { status: SystemStatusResponse | null; t
 
           <div className="mt-[0.7vw] grid grid-cols-[1fr_1fr_1fr] gap-[0.7vw]">
             <TimeCard title="当前时间" label="118.81631°E  31.890438°N" body={clock} />
-            <TimeCard title="距离日落" label="日落: 19:00" body={formatDuration(sunsetMinutes)} />
+            <TimeCard title={sunNode.title} label={sunNode.label} body={formatDuration(sunNode.minutes)} />
             <TimeCard title="距离下一个时间节点" label="提交项目海报" body={formatDuration(nextNodeMinutes)} />
           </div>
 
