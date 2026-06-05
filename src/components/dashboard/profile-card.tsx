@@ -4,7 +4,7 @@ import { useRef, useTransition } from "react";
 import type { SafeUser } from "@/types";
 import { ROLE_LABELS } from "@/types";
 import Image from "next/image";
-import { Camera } from "lucide-react";
+import { Camera, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 interface ProfileCardProps {
@@ -18,6 +18,20 @@ export function ProfileCard({ user, onAvatarUpdate }: ProfileCardProps) {
 
   const avatarSrc =
     user.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${user.builderId}`;
+
+  const handlePresenceToggle = () => {
+    startTransition(async () => {
+      try {
+        const res = await fetch("/api/user/presence", { method: "POST" });
+        const json = await res.json();
+        if (json.ok) {
+          onAvatarUpdate?.();
+        }
+      } catch {
+        toast.error("操作失败");
+      }
+    });
+  };
 
   const handleAvatarClick = () => {
     fileInputRef.current?.click();
@@ -91,6 +105,21 @@ export function ProfileCard({ user, onAvatarUpdate }: ProfileCardProps) {
         <span className="inline-block rounded border border-ifland-purple/40 bg-ifland-purple/10 px-2 py-0.5 text-xs text-ifland-purple">
           {ROLE_LABELS[user.role]}
         </span>
+        <button
+          onClick={handlePresenceToggle}
+          disabled={pending}
+          className={`inline-flex items-center gap-1 rounded border px-2 py-0.5 text-xs font-bold ${
+            user.presenceStatus === "离场"
+              ? "border-ifland-primary/40 bg-ifland-primary/10 text-ifland-primary"
+              : "border-muted/40 bg-muted/10 text-muted-foreground"
+          }`}
+        >
+          {pending ? (
+            <Loader2 className="h-3 w-3 animate-spin" />
+          ) : (
+            user.presenceStatus === "离场" ? "入场" : "离场"
+          )}
+        </button>
         {user.phone && (
           <p className="text-muted-foreground text-xs">📞 {user.phone}</p>
         )}

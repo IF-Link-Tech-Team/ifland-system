@@ -48,6 +48,10 @@ public/workbox-*.js.map
 # vercel
 .vercel
 
+# IDE / Agent config
+.trae
+.claude
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

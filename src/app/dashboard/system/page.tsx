@@ -206,7 +206,9 @@ function TeamCard({ team }: { team: TeamInfo }) {
           {team.members.slice(0, 3).map((member) => (
             <div
               key={member.builderId}
-              className="relative h-8 w-8 overflow-hidden rounded-full ring-2 ring-ifland-primary bg-white"
+              className={`relative h-8 w-8 overflow-hidden rounded-full ring-2 ring-ifland-primary bg-white ${
+                member.presenceStatus === "离场" ? "grayscale opacity-40" : ""
+              }`}
             >
               <Image
                 src={member.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${member.builderId}`}

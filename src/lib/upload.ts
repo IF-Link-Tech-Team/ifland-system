@@ -18,10 +18,12 @@ export async function uploadAvatar(
 ): Promise<string> {
   // 如果 TOS 凭证齐全，走云存储
   if (TOS_AK && TOS_SK) {
+    console.log("[upload] 使用 TOS 云存储, bucket:", TOS_BUCKET, "region:", TOS_REGION);
     return uploadToTOS(buffer, originalName);
   }
 
   // 降级：本地存储（仅开发用）
+  console.log("[upload] TOS 未配置，降级为本地存储");
   return uploadToLocal(buffer, originalName);
 }
 
