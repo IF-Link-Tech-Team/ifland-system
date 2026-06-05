@@ -99,7 +99,7 @@ export async function searchRecords(
 ): Promise<Record<string, unknown>[]> {
   // 无筛选条件的全量查询走内存缓存，避免高频轮询重复请求飞书 API
   if (!filter) {
-    const cached = getCachedList(tableId);
+    const cached = readListCache(tableId);
     if (cached) return cached;
   }
 
@@ -145,7 +145,7 @@ export async function searchRecords(
 
   // 全量查询结果写入缓存
   if (!filter) {
-    setCachedList(tableId, allItems);
+    writeListCache(tableId, allItems);
   }
 
   return allItems;
@@ -315,14 +315,19 @@ export async function getSystemStatus(tableId: string) {
 const listCache = new Map<string, { data: Record<string, unknown>[]; expiresAt: number }>();
 const LIST_CACHE_TTL = 5000; // 5 秒，与前端轮询间隔一致
 
-function getCachedList(tableId: string): Record<string, unknown>[] | null {
+function readListCache(tableId: string): Record<string, unknown>[] | null {
   const entry = listCache.get(tableId);
   if (entry && Date.now() < entry.expiresAt) return entry.data;
   return null;
 }
 
-function setCachedList(tableId: string, data: Record<string, unknown>[]): void {
+function writeListCache(tableId: string, data: Record<string, unknown>[]): void {
   listCache.set(tableId, { data, expiresAt: Date.now() + LIST_CACHE_TTL });
+}
+
+/** 读取缓存的全量记录（无 filter 的 searchRecords 结果），可用于替代单记录飞书查询 */
+export function getCachedList(tableId: string): Record<string, unknown>[] | null {
+  return readListCache(tableId);
 }
 
 /** 清除全量数据缓存（写操作后调用，下次查询自动重新拉取） */

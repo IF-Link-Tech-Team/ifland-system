@@ -37,8 +37,21 @@ export class FeishuDataSource implements DataSource {
     return record?.recordId ?? null;
   }
 
+  /** 根据飞书 recordId 解析队伍编号，优先走缓存 */
   private async resolveTeamId(linkIds: string[]): Promise<string | null> {
     if (linkIds.length === 0) return null;
+
+    // 优先从全量缓存中查找
+    const cachedTeams = feishu.getCachedList(TABLE_TEAMS());
+    if (cachedTeams) {
+      const teamRecord = cachedTeams.find((r) => String(r.record_id ?? "") === linkIds[0]);
+      if (teamRecord) {
+        return extractTextValue((teamRecord.fields as Record<string, unknown>)[FIELD.teamId]) || null;
+      }
+      return null;
+    }
+
+    // 缓存 miss，走飞书 API
     const teamRecord = await feishu.getRecord(TABLE_TEAMS(), linkIds[0]);
     if (!teamRecord) return null;
     const fields = teamRecord.fields as Record<string, unknown>;
@@ -46,6 +59,20 @@ export class FeishuDataSource implements DataSource {
   }
 
   async getUserByBuilderId(builderId: string): Promise<User | null> {
+    // 优先从全量缓存查找，避免独立调用飞书 API
+    const cachedUsers = feishu.getCachedList(TABLE_USERS());
+    if (cachedUsers) {
+      const record = cachedUsers.find(
+        (r) => extractTextValue((r.fields as Record<string, unknown>)[FIELD.builderId]) === builderId
+      );
+      if (record) {
+        const fields = record.fields as Record<string, unknown>;
+        const teamId = await this.resolveTeamId(extractLinkRecordIds(fields[FIELD.teamRef]));
+        return mapFeishuUser(fields, teamId);
+      }
+      return null;
+    }
+
     const record = await feishu.findRecord(
       TABLE_USERS(),
       `CurrentValue.[${FIELD.builderId}]="${builderId}"`
@@ -58,6 +85,20 @@ export class FeishuDataSource implements DataSource {
   }
 
   async getUserByEmail(email: string): Promise<User | null> {
+    // 优先从全量缓存查找
+    const cachedUsers = feishu.getCachedList(TABLE_USERS());
+    if (cachedUsers) {
+      const record = cachedUsers.find(
+        (r) => extractTextValue((r.fields as Record<string, unknown>)[FIELD.email]) === email
+      );
+      if (record) {
+        const fields = record.fields as Record<string, unknown>;
+        const teamId = await this.resolveTeamId(extractLinkRecordIds(fields[FIELD.teamRef]));
+        return mapFeishuUser(fields, teamId);
+      }
+      return null;
+    }
+
     const records = await feishu.searchRecords(TABLE_USERS(), {
       conjunction: "and",
       conditions: [{ field_name: FIELD.email, operator: "is", value: [email] }],
@@ -70,6 +111,20 @@ export class FeishuDataSource implements DataSource {
   }
 
   async getUserByOpenId(openId: string): Promise<User | null> {
+    // 优先从全量缓存查找
+    const cachedUsers = feishu.getCachedList(TABLE_USERS());
+    if (cachedUsers) {
+      const record = cachedUsers.find(
+        (r) => extractTextValue((r.fields as Record<string, unknown>)[FIELD.openId]) === openId
+      );
+      if (record) {
+        const fields = record.fields as Record<string, unknown>;
+        const teamId = await this.resolveTeamId(extractLinkRecordIds(fields[FIELD.teamRef]));
+        return mapFeishuUser(fields, teamId);
+      }
+      return null;
+    }
+
     const records = await feishu.searchRecords(TABLE_USERS(), {
       conjunction: "and",
       conditions: [{ field_name: FIELD.openId, operator: "is", value: [openId] }],
@@ -154,6 +209,19 @@ export class FeishuDataSource implements DataSource {
   }
 
   async getTeamById(teamId: string): Promise<Team | null> {
+    // 优先从全量缓存查找
+    const cachedTeams = feishu.getCachedList(TABLE_TEAMS());
+    const cachedUsers = feishu.getCachedList(TABLE_USERS());
+    if (cachedTeams && cachedUsers) {
+      const teamRecord = cachedTeams.find(
+        (r) => extractTextValue((r.fields as Record<string, unknown>)[FIELD.teamId]) === teamId
+      );
+      if (teamRecord) {
+        return this.buildTeamFromRecords(teamRecord, cachedUsers);
+      }
+      return null;
+    }
+
     const record = await feishu.findRecord(
       TABLE_TEAMS(),
       `CurrentValue.[${FIELD.teamId}]="${teamId}"`
@@ -163,6 +231,34 @@ export class FeishuDataSource implements DataSource {
     const teamRecordId = record.recordId;
     const teamFields = record.fields;
     const userRecords = await feishu.searchRecords(TABLE_USERS());
+    const userMap = new Map<string, string>();
+    const memberIds: string[] = [];
+
+    for (const userRecord of userRecords) {
+      const fields = userRecord.fields as Record<string, unknown>;
+      const recordId = String(userRecord.record_id ?? "");
+      const builderId = extractTextValue(fields[FIELD.builderId]);
+      if (recordId && builderId) userMap.set(recordId, builderId);
+
+      const teamLinks = extractLinkRecordIds(fields[FIELD.teamRef]);
+      if (teamLinks.includes(teamRecordId) && builderId) {
+        memberIds.push(builderId);
+      }
+    }
+
+    const captainLinkIds = extractLinkRecordIds(teamFields[FIELD.teamCaptain]);
+    const captainId = captainLinkIds.length > 0 ? userMap.get(captainLinkIds[0]) ?? "" : "";
+    return mapFeishuTeam(teamFields, captainId, memberIds);
+  }
+
+  /** 从缓存记录构建 Team 对象 */
+  private buildTeamFromRecords(
+    teamRecord: Record<string, unknown>,
+    userRecords: Record<string, unknown>[]
+  ): Team {
+    const teamRecordId = String(teamRecord.record_id ?? "");
+    const teamFields = teamRecord.fields as Record<string, unknown>;
+
     const userMap = new Map<string, string>();
     const memberIds: string[] = [];
 
