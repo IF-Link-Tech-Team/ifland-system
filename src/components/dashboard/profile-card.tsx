@@ -1,8 +1,8 @@
 "use client";
 
-import { useRef, useTransition } from "react";
-import type { SafeUser } from "@/types";
-import { ROLE_LABELS } from "@/types";
+import { useRef, useState, useTransition } from "react";
+import type { SafeUser, UserRole } from "@/types";
+import { ROLE_LABELS, SELECTABLE_ROLES } from "@/types";
 import Image from "next/image";
 import { Camera, Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -15,6 +15,8 @@ interface ProfileCardProps {
 export function ProfileCard({ user, onAvatarUpdate }: ProfileCardProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [pending, startTransition] = useTransition();
+  const [showRolePicker, setShowRolePicker] = useState(false);
+  const [selectedRole, setSelectedRole] = useState<UserRole>(user.role);
 
   const avatarSrc =
     user.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${user.builderId}`;
@@ -29,6 +31,29 @@ export function ProfileCard({ user, onAvatarUpdate }: ProfileCardProps) {
         }
       } catch {
         toast.error("操作失败");
+      }
+    });
+  };
+
+  const handleRoleSelect = (role: UserRole) => {
+    startTransition(async () => {
+      try {
+        const res = await fetch("/api/user/role", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ role }),
+        });
+        const json = await res.json();
+        if (json.ok) {
+          setSelectedRole(role);
+          setShowRolePicker(false);
+          toast.success(`已选择角色: ${ROLE_LABELS[role]}`);
+          onAvatarUpdate?.();
+        } else {
+          toast.error(json.error ?? "选择失败");
+        }
+      } catch {
+        toast.error("选择失败");
       }
     });
   };
@@ -102,9 +127,41 @@ export function ProfileCard({ user, onAvatarUpdate }: ProfileCardProps) {
         <p className="text-muted-foreground text-sm">
           Builder #{user.builderId}
         </p>
-        <span className="inline-block rounded border border-ifland-purple/40 bg-ifland-purple/10 px-2 py-0.5 text-xs text-ifland-purple">
-          {ROLE_LABELS[user.role]}
-        </span>
+        {/* 角色标签 */}
+        {selectedRole === "ANOMALY" ? (
+          <button
+            onClick={() => setShowRolePicker(true)}
+            className="inline-flex items-center gap-1 rounded border border-ifland-purple/40 bg-ifland-purple/10 px-2 py-0.5 text-xs text-ifland-purple animate-pulse cursor-pointer"
+          >
+            选择角色 ✦
+          </button>
+        ) : (
+          <span className="inline-block rounded border border-ifland-purple/40 bg-ifland-purple/10 px-2 py-0.5 text-xs text-ifland-purple">
+            {ROLE_LABELS[selectedRole]}
+          </span>
+        )}
+
+        {/* 角色选择器 */}
+        {showRolePicker && (
+          <div className="mt-1 flex flex-wrap gap-1.5">
+            {SELECTABLE_ROLES.map((role) => (
+              <button
+                key={role}
+                onClick={() => handleRoleSelect(role)}
+                disabled={pending}
+                className="rounded border border-ifland-primary/30 bg-ifland-primary/5 px-2.5 py-1 text-xs font-medium text-ifland-primary hover:bg-ifland-primary/20 transition-colors"
+              >
+                {pending ? <Loader2 className="h-3 w-3 animate-spin" /> : ROLE_LABELS[role]}
+              </button>
+            ))}
+            <button
+              onClick={() => setShowRolePicker(false)}
+              className="rounded border border-muted/30 bg-muted/5 px-2.5 py-1 text-xs text-muted-foreground"
+            >
+              取消
+            </button>
+          </div>
+        )}
         <button
           onClick={handlePresenceToggle}
           disabled={pending}

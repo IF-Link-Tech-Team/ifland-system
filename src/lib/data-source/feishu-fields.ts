@@ -1,4 +1,5 @@
 import type { Team, TeamStatus, User, UserRole, Workshop } from "@/types";
+import { ROLE_FROM_CN, ROLE_LABELS } from "@/types";
 
 export const FIELD = {
   builderId: "Builder号",
@@ -108,7 +109,7 @@ export function mapFeishuUser(
     email: extractTextValue(fields[FIELD.email]),
     password: extractTextValue(fields[FIELD.passwordHash]),
     avatar: extractTextValue(fields[FIELD.avatar]),
-    role: (extractSelectValue(fields[FIELD.role]) as UserRole) || "ANOMALY",
+    role: ROLE_FROM_CN[extractSelectValue(fields[FIELD.role])] || "ANOMALY",
     bio: extractTextValue(fields[FIELD.bio]),
     teamId,
     abnormalMark: extractTextValue(fields[FIELD.abnormalMark]) || null,

@@ -8,6 +8,7 @@ import {
   mapFeishuTeam,
   mapFeishuUser,
 } from "./feishu-fields";
+import { ROLE_LABELS } from "@/types";
 import type { DataSource } from "./types";
 
 const TABLE_USERS = () => process.env.FEISHU_TABLE_ID_USERS ?? "";
@@ -179,7 +180,7 @@ export class FeishuDataSource implements DataSource {
     if (updates.name !== undefined) fields[FIELD.name] = updates.name;
     if (updates.phone !== undefined) fields[FIELD.phone] = updates.phone;
     if (updates.email !== undefined) fields[FIELD.email] = updates.email;
-    if (updates.role !== undefined) fields[FIELD.role] = updates.role;
+    if (updates.role !== undefined) fields[FIELD.role] = ROLE_LABELS[updates.role];
     if (updates.bio !== undefined) fields[FIELD.bio] = updates.bio;
     if (updates.presenceStatus !== undefined) {
       fields[FIELD.presenceStatus] = updates.presenceStatus;

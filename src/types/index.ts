@@ -1,5 +1,14 @@
-/** 用户角色 */
-export type UserRole = "NAVIGATOR" | "WEAVER" | "LINKER" | "ARTIFICER" | "ANOMALY";
+/** 用户角色（ANOMALY 表示未选择，其余为正式角色） */
+export type UserRole = "NAVIGATOR" | "WEAVER" | "LINKER" | "ARTIFICER" | "BREAKER" | "ANOMALY";
+
+/** 可选角色列表（排除 ANOMALY） */
+export const SELECTABLE_ROLES: Exclude<UserRole, "ANOMALY">[] = [
+  "NAVIGATOR",
+  "WEAVER",
+  "LINKER",
+  "ARTIFICER",
+  "BREAKER",
+];
 
 /** 在场状态 */
 export type PresenceStatus = "在场" | "离场";
@@ -123,5 +132,11 @@ export const ROLE_LABELS: Record<UserRole, string> = {
   WEAVER: "编织者",
   LINKER: "链接者",
   ARTIFICER: "造物者",
-  ANOMALY: "破壁者",
+  BREAKER: "破壁者",
+  ANOMALY: "未选择",
 };
+
+/** 中文 → 英文角色反查（飞书读取时使用） */
+export const ROLE_FROM_CN: Record<string, UserRole> = Object.fromEntries(
+  Object.entries(ROLE_LABELS).map(([en, cn]) => [cn, en as UserRole])
+);
