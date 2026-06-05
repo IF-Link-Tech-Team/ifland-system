@@ -134,6 +134,7 @@ export class FeishuDataSource implements DataSource {
     }
 
     await feishu.updateRecord(TABLE_USERS(), record.recordId, fields);
+    feishu.clearDataCache();
     return true;
   }
 
@@ -148,6 +149,7 @@ export class FeishuDataSource implements DataSource {
     if (existing && existing.builderId !== builderId) return false;
 
     await feishu.updateRecord(TABLE_USERS(), record.recordId, { [FIELD.openId]: openId });
+    feishu.clearDataCache();
     return true;
   }
 
@@ -229,6 +231,7 @@ export class FeishuDataSource implements DataSource {
     };
 
     const result = await feishu.createRecord(TABLE_TEAMS(), fields);
+    feishu.clearDataCache();
     return result ? team : null;
   }
 
@@ -254,6 +257,7 @@ export class FeishuDataSource implements DataSource {
     }
 
     await feishu.updateRecord(TABLE_TEAMS(), record.recordId, fields);
+    feishu.clearDataCache();
     return true;
   }
 
@@ -263,7 +267,9 @@ export class FeishuDataSource implements DataSource {
       `CurrentValue.[${FIELD.teamId}]="${teamId}"`
     );
     if (!record) return false;
-    return feishu.deleteRecord(TABLE_TEAMS(), record.recordId);
+    await feishu.deleteRecord(TABLE_TEAMS(), record.recordId);
+    feishu.clearDataCache();
+    return true;
   }
 
   async getNextTeamId(): Promise<string> {

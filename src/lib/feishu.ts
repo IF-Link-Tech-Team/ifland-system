@@ -97,6 +97,12 @@ export async function searchRecords(
   filter?: SearchFilter,
   pageSize = 500
 ): Promise<Record<string, unknown>[]> {
+  // 无筛选条件的全量查询走内存缓存，避免高频轮询重复请求飞书 API
+  if (!filter) {
+    const cached = getCachedList(tableId);
+    if (cached) return cached;
+  }
+
   const allItems: Record<string, unknown>[] = [];
   let pageToken: string | undefined;
 
@@ -136,6 +142,11 @@ export async function searchRecords(
     const hasMore = data.data?.has_more ?? false;
     pageToken = hasMore ? data.data?.page_token : undefined;
   } while (pageToken);
+
+  // 全量查询结果写入缓存
+  if (!filter) {
+    setCachedList(tableId, allItems);
+  }
 
   return allItems;
 }
@@ -297,6 +308,26 @@ export async function getSystemStatus(tableId: string) {
   };
 
   return fields;
+}
+
+// ==================== 全量数据缓存（Users / Teams 表） ====================
+
+const listCache = new Map<string, { data: Record<string, unknown>[]; expiresAt: number }>();
+const LIST_CACHE_TTL = 5000; // 5 秒，与前端轮询间隔一致
+
+function getCachedList(tableId: string): Record<string, unknown>[] | null {
+  const entry = listCache.get(tableId);
+  if (entry && Date.now() < entry.expiresAt) return entry.data;
+  return null;
+}
+
+function setCachedList(tableId: string, data: Record<string, unknown>[]): void {
+  listCache.set(tableId, { data, expiresAt: Date.now() + LIST_CACHE_TTL });
+}
+
+/** 清除全量数据缓存（写操作后调用，下次查询自动重新拉取） */
+export function clearDataCache(): void {
+  listCache.clear();
 }
 
 /** 清除 Token 缓存（调试用） */
