@@ -1,32 +1,69 @@
-import fs from "fs";
+import TosClient from "@volcengine/tos-sdk";
 import path from "path";
 
-const UPLOAD_DIR = path.join(process.cwd(), "public/uploads");
+// TOS 配置
+const TOS_AK = process.env.TOS_AK;
+const TOS_SK = process.env.TOS_SK;
+const TOS_REGION = process.env.TOS_REGION || "cn-beijing";
+const TOS_BUCKET = process.env.TOS_BUCKET || "ifland-avatars";
 
 /**
- * 头像上传函数 (Phase 1: 本地直存)
- * Phase 2 切换为 TOS 时仅需修改此函数内部实现
- *
- * @param buffer - 图片二进制数据
- * @param originalName - 原始文件名
- * @returns 图片的公开访问 URL
+ * 头像上传函数
+ * 优先使用 TOS 云存储（需配置 TOS_AK/TOS_SK），
+ * 未配置时降级为本地存储（仅开发环境）
  */
 export async function uploadAvatar(
   buffer: Buffer,
   originalName: string
 ): Promise<string> {
-  // Phase 1: 保存到本地 /public/uploads
+  // 如果 TOS 凭证齐全，走云存储
+  if (TOS_AK && TOS_SK) {
+    return uploadToTOS(buffer, originalName);
+  }
+
+  // 降级：本地存储（仅开发用）
+  return uploadToLocal(buffer, originalName);
+}
+
+async function uploadToTOS(
+  buffer: Buffer,
+  originalName: string
+): Promise<string> {
+  const ext = path.extname(originalName) || ".png";
+  const filename = `avatar_${Date.now()}${ext}`;
+
+  const client = new TosClient({
+    accessKeyId: TOS_AK!,
+    accessKeySecret: TOS_SK!,
+    region: TOS_REGION,
+  });
+
+  await client.putObject({
+    bucket: TOS_BUCKET,
+    key: filename,
+    body: buffer,
+    contentType: ext === ".jpg" || ext === ".jpeg" ? "image/jpeg" : "image/png",
+  });
+
+  return `https://${TOS_BUCKET}.tos-${TOS_REGION}.volces.com/${filename}`;
+}
+
+async function uploadToLocal(
+  buffer: Buffer,
+  originalName: string
+): Promise<string> {
+  const fs = await import("fs");
+  const UPLOAD_DIR = path.join(process.cwd(), "public/uploads");
+
   const ext = path.extname(originalName) || ".png";
   const filename = `avatar_${Date.now()}${ext}`;
   const filepath = path.join(UPLOAD_DIR, filename);
 
-  // 确保上传目录存在
   if (!fs.existsSync(UPLOAD_DIR)) {
     fs.mkdirSync(UPLOAD_DIR, { recursive: true });
   }
 
   fs.writeFileSync(filepath, buffer);
 
-  // 返回相对于 localhost 的静态资源 URL
   return `/uploads/${filename}`;
 }
