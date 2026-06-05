@@ -88,10 +88,8 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="mx-auto flex min-h-screen w-full max-w-md flex-col gap-4 bg-ifland-dark p-4 md:bg-transparent md:p-8">
       <RedBanner />
-
-      <div className="mx-auto max-w-md p-4 md:p-8">
         {/* 顶部导航 */}
         <div className="mb-6 flex items-center justify-between">
           <h1 className="text-xl font-bold text-ifland-primary">
@@ -139,7 +137,6 @@ export default function DashboardPage() {
             </div>
           </>
         )}
-      </div>
     </div>
   );
 }
