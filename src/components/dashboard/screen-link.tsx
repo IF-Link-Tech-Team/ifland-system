@@ -8,7 +8,7 @@ export function ScreenLink() {
     <Button
       variant="ghost"
       size="icon"
-      className="text-ifland-primary hover:bg-ifland-primary/10"
+      className="hidden text-ifland-primary hover:bg-ifland-primary/10 md:inline-flex"
       onClick={() => window.open("/screen", "_blank")}
       title="查看大屏"
     >

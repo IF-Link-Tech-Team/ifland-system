@@ -110,6 +110,7 @@ export async function POST(request: NextRequest) {
       }
 
       existingTeam.pendingInvites.push(targetBuilderId);
+      console.log("[INVITE] 更新队伍 pendingInvites:", inviter.teamId, existingTeam.pendingInvites);
       await updateTeam(inviter.teamId, { pendingInvites: existingTeam.pendingInvites });
       team = existingTeam;
     }

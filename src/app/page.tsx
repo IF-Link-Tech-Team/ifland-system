@@ -3,21 +3,36 @@ import Link from "next/link";
 
 export default function Home() {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center gap-8 p-6">
-      <h1 className="text-4xl font-bold tracking-wider text-ifland-primary md:text-6xl">
-        IF.Land
-      </h1>
-      <p className="text-muted-foreground text-center text-sm md:text-base">
-        黑客松现场协同与展示系统
-      </p>
-      <div className="flex gap-4">
+    <main
+      className="relative w-full min-h-screen flex flex-col items-center justify-center bg-cover bg-center bg-no-repeat"
+      style={{
+        backgroundImage: `url(https://ifland-assets.tos-cn-beijing.volces.com/hero-images/moblie.png)`,
+      }}
+    >
+      {/* 响应式替换 PC 端大图 */}
+      <style dangerouslySetInnerHTML={{
+        __html: `
+          @media (min-width: 768px) {
+            main {
+              background-image: url('https://ifland-assets.tos-cn-beijing.volces.com/hero-images/desktop.png') !important;
+            }
+          }
+        `,
+      }} />
+
+      {/* 居中 Logo */}
+      <img
+        src="/icons/IF.Land%20Light%20Logo.svg"
+        alt="IF.Land Logo"
+        className="relative z-10 w-64 object-contain drop-shadow-2xl md:w-96 lg:w-[32rem]"
+      />
+
+      {/* 右上角登录按钮 */}
+      <div className="absolute right-4 top-4 z-10 md:right-8 md:top-8">
         <Button className="border border-ifland-primary/50 bg-ifland-primary/10 text-ifland-primary hover:bg-ifland-primary/20">
-          <Link href="/login">进入系统</Link>
-        </Button>
-        <Button variant="outline" className="border-ifland-orange/50 text-ifland-orange hover:bg-ifland-orange/10">
-          <Link href="/screen">大屏展示</Link>
+          <Link href="/login">登录</Link>
         </Button>
       </div>
-    </div>
+    </main>
   );
 }

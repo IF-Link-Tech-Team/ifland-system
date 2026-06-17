@@ -16,6 +16,8 @@ export async function GET(request: NextRequest) {
   const allUsers = await getAllUsers();
 
   // 查找所有 pendingInvites 包含当前用户的队伍
+  console.log("[RECEIVED] builderId:", builderId, "teams count:", teams.length);
+  console.log("[RECEIVED] teams with pendingInvites:", teams.map(t => ({ id: t.teamId, pending: t.pendingInvites })));
   const invites = teams
     .filter((team) => team.pendingInvites.includes(builderId))
     .map((team) => {
