@@ -20,7 +20,7 @@ const FALLBACK_PROJECTS: Project[] = [
     teamName: "Techin",
     description: "基于脑机接口的实时协作白板，支持多模态输入与 AI 辅助创意生成",
     posterUrl: null,
-    githubUrl: "https://github.com",
+    githubUrl: null,
     tags: [{ name: "AI+教育", color: "green" }, { name: "硬件交互", color: "orange" }],
   },
   {
@@ -29,7 +29,7 @@ const FALLBACK_PROJECTS: Project[] = [
     teamName: "Campus",
     description: "校园活动智能推荐引擎，利用 LLM 分析用户兴趣实现个性化活动匹配",
     posterUrl: null,
-    githubUrl: "https://github.com",
+    githubUrl: null,
     tags: [{ name: "AI+校园", color: "purple" }, { name: "推荐系统", color: "green" }],
   },
   {
@@ -47,7 +47,7 @@ const FALLBACK_PROJECTS: Project[] = [
     teamName: "全网最尊重前额叶队",
     description: "梦境可视化创作工具，将 AI 生成的叙事转化为交互式 3D 场景",
     posterUrl: null,
-    githubUrl: "https://github.com",
+    githubUrl: null,
     tags: [{ name: "AIGC", color: "purple" }, { name: "3D渲染", color: "orange" }],
   },
 ];
