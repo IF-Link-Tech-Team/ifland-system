@@ -96,10 +96,14 @@ export function ShowcaseSection() {
             PROJECT SHOWCASE
           </h2>
           <div className="flex gap-2 overflow-x-auto pb-2">
-            {CATEGORIES.map((cat) => (
+            {CATEGORIES.map((cat, i) => (
               <span
                 key={cat}
-                className="shrink-0 cursor-pointer rounded border border-gray-700 px-3 py-1 text-sm text-gray-400 transition-colors hover:border-ifland-primary hover:text-ifland-primary first:border-ifland-primary first:text-ifland-primary"
+                className={`shrink-0 cursor-pointer rounded px-3 py-1 text-sm font-medium transition-colors ${
+                  i === 0
+                    ? "border border-ifland-primary bg-ifland-primary text-white"
+                    : "border border-gray-700 text-gray-400 hover:border-ifland-primary hover:text-ifland-primary"
+                }`}
               >
                 {cat}
               </span>
