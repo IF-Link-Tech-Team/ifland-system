@@ -16,7 +16,7 @@ interface TokenResponse {
 }
 
 /** 获取 tenant_access_token（带缓存） */
-async function getTenantAccessToken(): Promise<string> {
+export async function getTenantAccessToken(): Promise<string> {
   // 缓存未过期则直接返回
   if (tokenCache && Date.now() < tokenCache.expiresAt) {
     return tokenCache.token;

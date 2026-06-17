@@ -143,3 +143,23 @@ export const MAX_TEAM_SIZE = 4;
 export const ROLE_FROM_CN: Record<string, UserRole> = Object.fromEntries(
   Object.entries(ROLE_LABELS).map(([en, cn]) => [cn, en as UserRole])
 );
+
+/** 作品展示 - 赛道标签颜色 */
+export type TagColor = "green" | "orange" | "purple";
+
+/** 作品展示 - 赛道标签 */
+export interface ProjectTag {
+  name: string;
+  color: TagColor;
+}
+
+/** 作品展示 - 项目数据 */
+export interface Project {
+  id: string;
+  projectName: string;
+  teamName: string;
+  description: string;
+  posterUrl: string | null;
+  githubUrl: string | null;
+  tags: ProjectTag[];
+}

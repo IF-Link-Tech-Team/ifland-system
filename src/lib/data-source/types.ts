@@ -1,4 +1,4 @@
-import type { User, Team, SystemConfig } from "@/types";
+import type { User, Team, SystemConfig, Project } from "@/types";
 
 export interface DataSource {
   getUserByBuilderId(builderId: string): Promise<User | null>;
@@ -21,4 +21,6 @@ export interface DataSource {
 
   getSystemConfig(): Promise<SystemConfig>;
   updateSystemConfig(updates: Partial<SystemConfig>): Promise<boolean>;
+
+  getShowcaseProjects(): Promise<Project[]>;
 }

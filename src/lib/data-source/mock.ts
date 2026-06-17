@@ -6,7 +6,7 @@ import {
   readMockData,
   writeMockData,
 } from "@/lib/mock-db";
-import type { Team, User, SystemConfig } from "@/types";
+import type { Team, User, SystemConfig, Project } from "@/types";
 import type { DataSource } from "./types";
 
 export class MockDataSource implements DataSource {
@@ -104,5 +104,10 @@ export class MockDataSource implements DataSource {
     Object.assign(data.system, updates);
     writeMockData(data);
     return true;
+  }
+
+  async getShowcaseProjects(): Promise<Project[]> {
+    // Mock 模式下返回空数组，展示模块使用内置 Mock 数据
+    return [];
   }
 }

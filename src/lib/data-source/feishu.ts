@@ -1,5 +1,5 @@
 import * as feishu from "@/lib/feishu";
-import type { Team, User, SystemConfig } from "@/types";
+import type { Team, User, SystemConfig, Project } from "@/types";
 import {
   FIELD,
   extractLinkRecordIds,
@@ -7,6 +7,8 @@ import {
   makeLinkValue,
   mapFeishuTeam,
   mapFeishuUser,
+  mapFeishuProject,
+  isProjectDiscarded,
 } from "./feishu-fields";
 import { ROLE_LABELS } from "@/types";
 import type { DataSource } from "./types";
@@ -14,6 +16,8 @@ import type { DataSource } from "./types";
 const TABLE_USERS = () => process.env.FEISHU_TABLE_ID_USERS ?? "";
 const TABLE_TEAMS = () => process.env.FEISHU_TABLE_ID_TEAMS ?? "";
 const TABLE_SYSTEM = () => process.env.FEISHU_TABLE_ID_SYSTEM ?? "";
+const BASE_PROJECTS = () => process.env.FEISHU_BASE_APP_TOKEN_PROJECTS ?? "";
+const TABLE_PROJECTS = () => process.env.FEISHU_TABLE_ID_PROJECTS ?? "";
 
 const WRITE_DELAY_MS = 500;
 
@@ -432,5 +436,61 @@ export class FeishuDataSource implements DataSource {
 
     await feishu.updateRecord(TABLE_SYSTEM(), recordId, fields);
     return true;
+  }
+
+  async getShowcaseProjects(): Promise<Project[]> {
+    const baseToken = BASE_PROJECTS();
+    const tableId = TABLE_PROJECTS();
+    if (!baseToken || !tableId) {
+      console.warn("[Feishu] Missing FEISHU_BASE_APP_TOKEN_PROJECTS or FEISHU_TABLE_ID_PROJECTS");
+      return [];
+    }
+
+    try {
+      // 项目表在不同的 Base 中，需要直接用飞书 searchRecords 并指定不同的 base
+      // 由于 searchRecords 内部用 BASE_TOKEN()，我们需要直接调飞书 API
+      const token = await feishu.getTenantAccessToken();
+      const allItems: Record<string, unknown>[] = [];
+      let pageToken: string | undefined;
+
+      do {
+        const body: Record<string, unknown> = { page_size: 500 };
+        if (pageToken) body.page_token = pageToken;
+
+        const res = await fetch(
+          `https://open.feishu.cn/open-apis/bitable/v1/apps/${baseToken}/tables/${tableId}/records/search`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(body),
+          }
+        );
+        const data = (await res.json()) as {
+          code: number;
+          msg?: string;
+          data?: { items: Record<string, unknown>[]; has_more?: boolean; page_token?: string };
+        };
+
+        if (data.code !== 0) {
+          console.error(`[Feishu] getShowcaseProjects error: ${data.code} ${data.msg}`);
+          return allItems
+        .filter((r) => !isProjectDiscarded(r.fields as Record<string, unknown>))
+        .map((r, i) => mapFeishuProject(r.fields as Record<string, unknown>, i));
+        }
+
+        allItems.push(...(data.data?.items ?? []));
+        pageToken = data.data?.has_more ? data.data?.page_token : undefined;
+      } while (pageToken);
+
+      return allItems
+        .filter((r) => !isProjectDiscarded(r.fields as Record<string, unknown>))
+        .map((r, i) => mapFeishuProject(r.fields as Record<string, unknown>, i));
+    } catch (err) {
+      console.error("[Feishu] getShowcaseProjects failed:", err);
+      return [];
+    }
   }
 }
