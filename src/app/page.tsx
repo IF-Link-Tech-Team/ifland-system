@@ -20,11 +20,16 @@ export default function Home() {
         `,
       }} />
 
-      {/* 居中 Logo */}
+      {/* 居中 Logo - 移动端 Dark, PC端 Light */}
+      <img
+        src="/icons/IF.Land%20Dark%20Logo.svg"
+        alt="IF.Land Logo"
+        className="relative z-10 w-64 object-contain drop-shadow-2xl md:hidden"
+      />
       <img
         src="/icons/IF.Land%20Light%20Logo.svg"
         alt="IF.Land Logo"
-        className="relative z-10 w-64 object-contain drop-shadow-2xl md:w-96 lg:w-[32rem]"
+        className="relative z-10 hidden w-96 object-contain drop-shadow-2xl lg:w-[32rem] md:block"
       />
 
       {/* 右上角登录按钮 */}
