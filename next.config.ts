@@ -18,6 +18,13 @@ const nextConfig: NextConfig = {
   },
   // 告知 Turbopack 存在空配置即可
   turbopack: {},
+  env: {
+    // 作品展示表 fallback（部署平台未配置时使用）
+    FEISHU_BASE_APP_TOKEN_PROJECTS:
+      process.env.FEISHU_BASE_APP_TOKEN_PROJECTS || "NGQewrPv5iyEsFkkF7kcEqgWnRc",
+    FEISHU_TABLE_ID_PROJECTS:
+      process.env.FEISHU_TABLE_ID_PROJECTS || "tblNhjrah9RTNDfm",
+  },
 };
 
 export default withPWA(nextConfig);
